@@ -1,6 +1,9 @@
 # 前端 Dockerfile
 FROM node:16-alpine AS builder
 
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 COPY recruit-system/recruit-web/package*.json ./
 RUN npm install --registry=https://registry.npmmirror.com --legacy-peer-deps
