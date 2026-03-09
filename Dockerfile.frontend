@@ -1,8 +1,5 @@
-# 前端 Dockerfile
-FROM node:16-alpine AS builder
-
-# Install build dependencies for native modules
-RUN apk add --no-cache python3 make g++
+# 前端 Dockerfile - 使用完整版 Node 镜像解决原生模块编译问题
+FROM node:16 AS builder
 
 WORKDIR /app
 COPY recruit-system/recruit-web/package*.json ./
