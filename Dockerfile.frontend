@@ -2,10 +2,10 @@
 FROM node:16-alpine AS builder
 
 WORKDIR /app
-COPY recruit-web/package*.json ./
+COPY recruit-system/recruit-web/package*.json ./
 RUN npm install --registry=https://registry.npmmirror.com
 
-COPY recruit-web/ .
+COPY recruit-system/recruit-web/ .
 RUN npm run build
 
 FROM nginx:alpine

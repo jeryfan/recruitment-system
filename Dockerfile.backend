@@ -2,8 +2,8 @@
 FROM maven:3.8-openjdk-11 AS builder
 
 WORKDIR /app
-COPY recruit-sys/pom.xml .
-COPY recruit-sys/src ./src
+COPY recruit-system/recruit-sys/pom.xml .
+COPY recruit-system/recruit-sys/src ./src
 
 RUN mvn clean package -DskipTests
 
