@@ -3,7 +3,7 @@ FROM node:16-alpine AS builder
 
 WORKDIR /app
 COPY recruit-system/recruit-web/package*.json ./
-RUN npm install --registry=https://registry.npmmirror.com
+RUN npm install --registry=https://registry.npmmirror.com --legacy-peer-deps
 
 COPY recruit-system/recruit-web/ .
 RUN npm run build
