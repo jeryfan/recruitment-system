@@ -1,12 +1,13 @@
-# 前端 Dockerfile - 使用完整版 Node 镜像解决原生模块编译问题
-FROM node:16 AS builder
+# 前端 Dockerfile - 使用 node:14 兼容 node-sass@4.12.0
+FROM node:14 AS builder
 
 WORKDIR /app
-COPY recruit-system/recruit-web/package*.json ./
-RUN npm install --registry=https://registry.npmmirror.com --legacy-peer-deps
+COPY recruit-system/recruit-web/package.json ./
+COPY recruit-system/recruit-web/yarn.lock ./
+RUN yarn install --registry=https://registry.npmmirror.com
 
 COPY recruit-system/recruit-web/ .
-RUN npm run build
+RUN yarn build
 
 FROM nginx:alpine
 

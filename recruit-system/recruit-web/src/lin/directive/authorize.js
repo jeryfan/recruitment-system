@@ -2,6 +2,10 @@ import Vue from 'vue'
 import store from '@/store'
 
 function isAllowed(permission, user, permissions) {
+  // 修复：user 或 permissions 可能为 undefined
+  if (!user || !permissions) {
+    return false
+  }
   if (user.admin) {
     return true
   }

@@ -13,7 +13,7 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/recruit.sql:/docker-entrypoint-initdb.d/01-recruit.sql
     networks:
       - recruitment-network
     healthcheck:
@@ -28,7 +28,7 @@ services:
     container_name: recruitment-backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recruit?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recruit?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: recruit
       SPRING_DATASOURCE_PASSWORD: recruit123456
     ports:

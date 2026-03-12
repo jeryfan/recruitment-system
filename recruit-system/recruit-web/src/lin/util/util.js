@@ -202,6 +202,10 @@ Utils.hasPermission = (permissions, route, user) => {
     return true
   }
   if (route.permission) {
+    // 修复：permissions 可能为 undefined
+    if (!permissions || !Array.isArray(permissions)) {
+      return false
+    }
     return permissions.some(permission => route.permission.indexOf(permission) > -1)
   }
   return true

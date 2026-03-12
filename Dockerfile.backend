@@ -1,6 +1,10 @@
 # 后端 Dockerfile
 FROM maven:3.8-openjdk-11 AS builder
 
+# 配置阿里云 Maven 镜像加速
+RUN mkdir -p /root/.m2 && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>\n<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"\n          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">\n  <mirrors>\n    <mirror>\n      <id>aliyunmaven</id>\n      <name>阿里云公共仓库</name>\n      <url>https://maven.aliyun.com/repository/public</url>\n      <mirrorOf>central</mirrorOf>\n    </mirror>\n  </mirrors>\n</settings>' > /root/.m2/settings.xml
+
 WORKDIR /app
 COPY recruit-system/recruit-sys/pom.xml .
 COPY recruit-system/recruit-sys/src ./src
@@ -14,4 +18,4 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
