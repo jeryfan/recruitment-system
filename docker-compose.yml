@@ -56,6 +56,19 @@ services:
       - recruitment-network
     restart: unless-stopped
 
+  admin:
+    build:
+      context: ./recruit-system/recruit-web
+      dockerfile: Dockerfile
+    container_name: recruitment-admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    networks:
+      - recruitment-network
+    restart: unless-stopped
+
 volumes:
   mysql_data:
 
