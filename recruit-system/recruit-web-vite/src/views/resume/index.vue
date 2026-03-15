@@ -360,7 +360,11 @@ const saveEducation = async () => {
     if (eduForm.id) {
       await updateEducation(eduForm.id, eduForm)
     } else {
-      await addEducation(eduForm)
+      if (!resume.value?.id) {
+        ElMessage.warning('请先创建简历')
+        return
+      }
+      await addEducation(eduForm, resume.value.id)
     }
     ElMessage.success('保存成功')
     eduDialogVisible.value = false
@@ -405,7 +409,11 @@ const saveExperience = async () => {
     if (expForm.id) {
       await updateExperience(expForm.id, expForm)
     } else {
-      await addExperience(expForm)
+      if (!resume.value?.id) {
+        ElMessage.warning('请先创建简历')
+        return
+      }
+      await addExperience(expForm, resume.value.id)
     }
     ElMessage.success('保存成功')
     expDialogVisible.value = false

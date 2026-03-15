@@ -47,6 +47,8 @@ public class ResumeServiceImpl extends ServiceImpl<ResumeMapper, ResumeDO> imple
         LambdaQueryWrapper<ResumeDO> queryWrapper = new LambdaQueryWrapper<ResumeDO>();
         queryWrapper.eq(ResumeDO::getUserId,userId);
         queryWrapper.isNull(ResumeDO::getDeleteTime);
+        queryWrapper.orderByDesc(ResumeDO::getId);
+        queryWrapper.last("LIMIT 1");
 
         ResumeDO resume = resumeMapper.selectOne(queryWrapper);
         ResumeVO res=new ResumeVO();
@@ -133,6 +135,22 @@ public class ResumeServiceImpl extends ServiceImpl<ResumeMapper, ResumeDO> imple
         resumeDO.setAge(validator.getAge());
         resumeDO.setSex(validator.getSex());
         resumeDO.setHome(validator.getHome());
+
+        // 同时更新用户信息（name、tel、email属于用户表）
+        UserDO user = userService.getById(validator.getUserId());
+        if (user != null) {
+            if (validator.getName() != null) {
+                user.setNickname(validator.getName());
+            }
+            if (validator.getTel() != null) {
+                user.setTel(validator.getTel());
+            }
+            if (validator.getEmail() != null) {
+                user.setEmail(validator.getEmail());
+            }
+            userService.updateById(user);
+        }
+
         return resumeMapper.updateById(resumeDO) > 0;
     }
 
@@ -141,6 +159,8 @@ public class ResumeServiceImpl extends ServiceImpl<ResumeMapper, ResumeDO> imple
         LambdaQueryWrapper<ResumeDO> queryWrapper = new LambdaQueryWrapper<ResumeDO>();
         queryWrapper.eq(ResumeDO::getUserId,userId);
         queryWrapper.isNull(ResumeDO::getDeleteTime);
+        queryWrapper.orderByDesc(ResumeDO::getId);
+        queryWrapper.last("LIMIT 1");
 
         ResumeDO resume = resumeMapper.selectOne(queryWrapper);
         return resume;

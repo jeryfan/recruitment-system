@@ -31,20 +31,20 @@ interface BackendJob {
   company_desc: string
 }
 
-// 后端返回的收藏职位数据结构（驼峰命名且字段较少 - 来自收藏接口）
+// 后端返回的收藏职位数据结构（下划线命名 - 来自收藏接口）
 interface BackendFavoriteJob {
   id: number
   title: string
   quantity: number
   city: string
-  salaryUp: number
-  salaryDown: number
-  releaseDate: string
+  salary_up: number
+  salary_down: number
+  release_date: string
   state: number
   hits: number
-  categoryId: number
-  hrId: number
-  companyId: number
+  category_id: number
+  hr_id: number
+  company_id: number
 }
 
 // 转换后端数据为前端格式（下划线命名）
@@ -68,15 +68,15 @@ function convertBackendJob(backendJob: BackendJob): Job {
   }
 }
 
-// 转换后端收藏数据为前端格式（驼峰命名）
+// 转换后端收藏数据为前端格式（下划线命名）
 function convertBackendFavoriteJob(backendJob: BackendFavoriteJob): Job {
   return {
     id: backendJob.id,
     title: backendJob.title,
     companyName: '', // 收藏接口不返回公司名称
     companyLogo: undefined,
-    salaryMin: backendJob.salaryDown ? backendJob.salaryDown / 1000 : 0, // 转换为K
-    salaryMax: backendJob.salaryUp ? backendJob.salaryUp / 1000 : 0,
+    salaryMin: backendJob.salary_down ? backendJob.salary_down / 1000 : 0, // 转换为K
+    salaryMax: backendJob.salary_up ? backendJob.salary_up / 1000 : 0,
     city: backendJob.city,
     experience: '', // 后端暂无此字段
     education: '', // 后端暂无此字段
@@ -85,7 +85,7 @@ function convertBackendFavoriteJob(backendJob: BackendFavoriteJob): Job {
     tags: [],
     hits: backendJob.hits,
     state: backendJob.state,
-    createTime: backendJob.releaseDate
+    createTime: backendJob.release_date
   }
 }
 

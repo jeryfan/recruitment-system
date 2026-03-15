@@ -36,8 +36,11 @@ request.interceptors.response.use(
     const successCodes = [0, 200, 1000, 1010, 1100, 1600, 2100, 2200, 4000, 4100, 7000, 7100, 7200]
     if (!successCodes.includes(res.code)) {
       ElMessage.error(res.message || '请求失败')
-      if (res.code === 401) {
+      // 401 或 token 过期/无效相关错误码
+      const authErrorCodes = [401, 10000, 10001, 10040, 10051, 10052]
+      if (authErrorCodes.includes(res.code)) {
         localStorage.removeItem('token')
+        localStorage.removeItem('user-store')
         router.push('/login')
       }
       return Promise.reject(new Error(res.message))

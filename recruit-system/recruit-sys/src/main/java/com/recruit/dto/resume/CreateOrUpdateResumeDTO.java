@@ -50,4 +50,19 @@ public class CreateOrUpdateResumeDTO {
      * 性别
      */
     private Integer sex;
+
+    /**
+     * 姓名
+     */
+    private String name;
+
+    /**
+     * 手机号
+     */
+    private String tel;
+
+    /**
+     * 邮箱
+     */
+    private String email;
 }
