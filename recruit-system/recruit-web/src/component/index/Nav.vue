@@ -29,10 +29,10 @@ export default {
 			wName: [],
 			overList: false,
 			outList: true,
-			imglist: ["http://cdn6.haitou.cc/homepage/1647250355.jpg",
-				"http://cdn6.haitou.cc/homepage/1647588427.jpg",
-				"http://cdn6.haitou.cc/homepage/1647940128.jpg",
-				"http://cdn6.haitou.cc/homepage/1648289334.png"]
+			imglist: ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=400&fit=crop",
+				"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&h=400&fit=crop",
+				"https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&h=400&fit=crop",
+				"https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&h=400&fit=crop"]
 		}
 	},
 	async mounted() {

@@ -4,11 +4,14 @@ services:
   mysql:
     image: mysql:8.0
     container_name: recruitment-mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root123456
       MYSQL_DATABASE: recruit
       MYSQL_USER: recruit
       MYSQL_PASSWORD: recruit123456
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     ports:
       - "3306:3306"
     volumes:
@@ -28,7 +31,7 @@ services:
     container_name: recruitment-backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recruit?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recruit?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&connectionCollation=utf8mb4_unicode_ci
       SPRING_DATASOURCE_USERNAME: recruit
       SPRING_DATASOURCE_PASSWORD: recruit123456
     ports:

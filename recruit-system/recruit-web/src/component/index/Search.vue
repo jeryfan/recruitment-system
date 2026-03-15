@@ -20,11 +20,11 @@
 					</div>
 					<div class="s_hot">
 						热门职位搜索：
-						<span class="s_hot_like" @click="searchKeyword = 'java'">&nbsp;Java开发</span>
-						<span class="s_hot_like" @click="searchKeyword = '数据'">大数据平台开发</span>
-						<span class="s_hot_like" @click="searchKeyword = 'PHP'">PHP</span>
-						<span class="s_hot_like" @click="searchKeyword = '数据'">数据挖掘</span>
-						<span class="s_hot_like" @click="searchKeyword = 'C++'">C++</span>
+						<span class="s_hot_like" @click="searchKeyword = '导游'">&nbsp;导游</span>
+						<span class="s_hot_like" @click="searchKeyword = '酒店经理'">酒店经理</span>
+						<span class="s_hot_like" @click="searchKeyword = '旅行顾问'">旅行顾问</span>
+						<span class="s_hot_like" @click="searchKeyword = '空乘'">空乘</span>
+						<span class="s_hot_like" @click="searchKeyword = '景区讲解'">景区讲解员</span>
 					</div>
 				</div>
 				<template v-if="!showDetail">

@@ -1,13 +1,17 @@
-# 前端 Dockerfile - 使用 node:14 兼容 node-sass@4.12.0
-FROM node:14 AS builder
+# 前端 Dockerfile - Vue 3 + Vite 现代化技术栈
+FROM node:20-slim AS builder
 
 WORKDIR /app
-COPY recruit-system/recruit-web/package.json ./
-COPY recruit-system/recruit-web/yarn.lock ./
-RUN yarn install --registry=https://registry.npmmirror.com
 
-COPY recruit-system/recruit-web/ .
-RUN yarn build
+# 复制新项目的 package.json
+COPY recruit-system/recruit-web-vite/package.json ./
+RUN npm install --registry=https://registry.npmmirror.com
+
+# 复制项目文件
+COPY recruit-system/recruit-web-vite/ ./
+
+# 构建
+RUN npm run build
 
 FROM nginx:alpine
 

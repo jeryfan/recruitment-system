@@ -1,7 +1,7 @@
 <template>
   <div class="container" v-if="!showDetail && !showHot">
     <div class="header">
-      <div class="title">欢迎使用企业员工招聘系统系统</div>
+      <div class="title">欢迎使用旅游行业招聘系统</div>
     </div>
     <!-- 搜索框 -->
     <div class="box">

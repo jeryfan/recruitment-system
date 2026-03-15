@@ -4,7 +4,7 @@
 		<div class="footerContain">
 			<div class="footeright">
 				<span v-for="(list, index) in lists" :key="index">{{ list }}</span>
-				<p>&copy;2022 京ICP备55555号-7&nbsp;&nbsp;京公网备777777777号</p>
+				<p>&copy;2024 旅游人才招聘网 版权所有</p>
 			</div>
 		</div>
 	</div>
@@ -14,7 +14,7 @@
 export default {
 	data() {
 		return {
-			lists: ['招聘APP', '企业员工招聘系统', '招聘微信', '招聘小程序', '帮助中心', '联系我们', '招聘解决方案', '服务热线：00544-44944']
+			lists: ['旅游招聘APP', '旅游行业招聘系统', '旅游招聘微信', '旅游小程序', '帮助中心', '联系我们', '旅游人才解决方案', '服务热线：400-888-8888']
 		}
 	}
 }
