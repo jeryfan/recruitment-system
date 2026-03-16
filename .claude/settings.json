@@ -1,0 +1,11 @@
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "sk-kimi-Hub9crXvNE2tMoaf7wzOhTlbkt2fPe0hqqAmiYJrQpSXIZdgSRfVtewfsjVNFJ11",
+    "ANTHROPIC_BASE_URL": "https://api.kimi.com/coding",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "kimi-for-coding",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "kimi-for-coding",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "kimi-for-coding",
+    "ANTHROPIC_MODEL": "kimi-for-coding",
+    "ANTHROPIC_REASONING_MODEL": "kimi-for-coding"
+  }
+}
