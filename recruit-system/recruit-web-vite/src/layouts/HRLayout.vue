@@ -3,7 +3,7 @@
     <el-aside width="220px" class="aside">
       <div class="logo">
         <el-icon size="32" color="#409EFF"><Compass /></el-icon>
-        <span class="title">管理后台</span>
+        <span class="title">企业招聘中心</span>
       </div>
       <el-menu
         :default-active="activeMenu"
@@ -34,7 +34,7 @@
                 <el-icon><User /></el-icon>
               </el-avatar>
               <span class="username">{{ userStore.userInfo?.nickname || userStore.userInfo?.username }}</span>
-              <el-tag size="small" type="danger" class="role-tag">Admin</el-tag>
+              <el-tag size="small" type="warning" class="role-tag">HR</el-tag>
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
@@ -71,21 +71,20 @@ const userStore = useUserStore()
 
 const activeMenu = computed(() => route.path)
 
-// Admin专属菜单
 const menuItems = [
-  { path: '/admin/dashboard', title: '管理控制台', icon: 'HomeFilled' },
-  { path: '/admin/users', title: '用户管理', icon: 'UserFilled' },
-  { path: '/admin/companies', title: '企业审核', icon: 'OfficeBuilding' },
-  { path: '/admin/categories', title: '职位分类', icon: 'Grid' },
+  { path: '/hr/dashboard', title: '工作台', icon: 'HomeFilled' },
+  { path: '/company/manage', title: '企业管理', icon: 'OfficeBuilding' },
+  { path: '/job/manage', title: '职位管理', icon: 'Collection' },
+  { path: '/resumes', title: '简历管理', icon: 'DocumentCopy' },
 ]
 
 const handleCommand = (command: string) => {
   switch (command) {
     case 'profile':
-      router.push('/admin/profile')
+      router.push('/hr/profile')
       break
     case 'password':
-      router.push('/admin/profile?tab=password')
+      router.push('/hr/profile?tab=password')
       break
     case 'logout':
       userStore.logout()
@@ -112,7 +111,7 @@ const handleCommand = (command: string) => {
 
       .title {
         color: #fff;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
       }
     }
@@ -146,6 +145,10 @@ const handleCommand = (command: string) => {
         .username {
           font-size: 14px;
           color: #606266;
+        }
+
+        .role-tag {
+          margin-left: 4px;
         }
       }
     }

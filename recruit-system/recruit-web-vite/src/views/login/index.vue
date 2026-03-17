@@ -324,12 +324,12 @@ const handleLogin = async () => {
       const user = await userStore.login(loginForm)
       if (user) {
         ElMessage.success('登录成功')
-        // 根据角色跳转到不同页面
+        // 根据角色跳转到不同的首页
         const role = user.role
         if (role === 'admin') {
-          router.push('/admin/users')
+          router.push('/admin/dashboard')
         } else if (role === 'hr') {
-          router.push('/company/manage')
+          router.push('/hr/dashboard')
         } else {
           router.push('/home')
         }

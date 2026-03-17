@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { Compass, Search, User, ArrowDown, Document, List, Star, SwitchButton } from '@element-plus/icons-vue'
@@ -91,6 +91,16 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const searchKeyword = ref('')
+
+// 检查角色，非用户角色重定向到对应首页
+onMounted(() => {
+  const role = userStore.userInfo?.role
+  if (role === 'hr') {
+    router.replace('/hr/dashboard')
+  } else if (role === 'admin') {
+    router.replace('/admin/dashboard')
+  }
+})
 
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
