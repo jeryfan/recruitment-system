@@ -183,6 +183,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import type { Job } from '@/types'
 import { getJobList } from '@/api/job'
 import {
@@ -678,3 +679,4 @@ onMounted(fetchJobs)
   }
 }
 </style>
+
