@@ -56,6 +56,7 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('user-store')
     ElMessage.success('退出成功')
   }
 

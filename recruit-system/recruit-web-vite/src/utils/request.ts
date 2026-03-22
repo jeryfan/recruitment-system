@@ -24,6 +24,24 @@ request.interceptors.request.use(
   }
 )
 
+// token过期/无效相关错误码（Lin CMS）
+const AUTH_ERROR_CODES = [401, 10000, 10001, 10040, 10051, 10052]
+
+// 防止并发请求同时触发多次跳转和多次 toast
+let isAuthRedirecting = false
+
+function clearAuthAndRedirect(message?: string) {
+  if (isAuthRedirecting) return
+  isAuthRedirecting = true
+  localStorage.removeItem('token')
+  localStorage.removeItem('user-store')
+  ElMessage.warning(message || '登录已过期，请重新登录')
+  router.replace('/login').finally(() => {
+    // 跳转完成后重置标志，允许下次正常检测
+    setTimeout(() => { isAuthRedirecting = false }, 1000)
+  })
+}
+
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
@@ -35,20 +53,30 @@ request.interceptors.response.use(
     // 成功状态码：0, 200, 1000-2000（Lin CMS 状态码范围）
     const successCodes = [0, 200, 1000, 1010, 1100, 1600, 2100, 2200, 4000, 4100, 7000, 7100, 7200]
     if (!successCodes.includes(res.code)) {
-      ElMessage.error(res.message || '请求失败')
-      // 401 或 token 过期/无效相关错误码
-      const authErrorCodes = [401, 10000, 10001, 10040, 10051, 10052]
-      if (authErrorCodes.includes(res.code)) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user-store')
-        router.push('/login')
+      // token过期或无效 —— 清除并跳转（避免多个并发请求弹多次，由 clearAuthAndRedirect 去重）
+      if (AUTH_ERROR_CODES.includes(res.code)) {
+        clearAuthAndRedirect(res.message)
+        return Promise.reject(new Error(res.message))
       }
+      ElMessage.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message))
     }
     return res.data || res
   },
   (error) => {
-    ElMessage.error(error.message || '网络错误')
+    const status = error.response?.status
+    const code = error.response?.data?.code
+
+    // HTTP 401 或 body 里的认证错误码 —— token过期/无效
+    if (status === 401 || AUTH_ERROR_CODES.includes(code)) {
+      const msg = error.response?.data?.message || 'token已过期，请重新登录'
+      clearAuthAndRedirect(msg)
+      return Promise.reject(error)
+    }
+
+    // 其他网络/服务端错误
+    const msg = error.response?.data?.message || error.message || '网络错误，请稍后重试'
+    ElMessage.error(msg)
     return Promise.reject(error)
   }
 )
