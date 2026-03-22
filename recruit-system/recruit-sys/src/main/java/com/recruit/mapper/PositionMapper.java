@@ -29,4 +29,6 @@ public interface PositionMapper extends BaseMapper<PositionDO> {
     IPage<PositionDO> getPage(Page<PositionDO> pager, Integer state);
 
     IPage<PositionResultDO> getPageByKeyword(Page<PositionResultDO> pager, String keyword);
+
+    List<PositionResultDO> getAllActive();
 }

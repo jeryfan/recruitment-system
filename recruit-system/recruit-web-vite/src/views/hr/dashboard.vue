@@ -68,6 +68,29 @@
       </div>
     </el-card>
 
+    <!-- 图表区域 -->
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <!-- 简历状态分布饼图 -->
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header"><span>简历处理状态分布</span></div>
+          </template>
+          <div ref="statusChartRef" style="height: 260px; width: 100%;"></div>
+        </el-card>
+      </el-col>
+
+      <!-- 职位投递量 TOP5 条形图 -->
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header"><span>职位投递量 TOP5</span></div>
+          </template>
+          <div ref="positionChartRef" style="height: 260px; width: 100%;"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 待处理简历列表 -->
     <el-card class="pending-list" shadow="hover" style="margin-top: 20px;">
       <template #header>
@@ -114,12 +137,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { DocumentCopy, Collection, ChatDotRound, SuccessFilled, Plus, Search, Edit, Setting } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 import moment from 'moment'
+import * as echarts from 'echarts'
 
 const userStore = useUserStore()
 
@@ -134,6 +158,13 @@ const stats = ref({
 })
 
 const pendingResumes = ref<any[]>([])
+const allApplications = ref<any[]>([])
+
+// ECharts refs
+const statusChartRef = ref<HTMLElement>()
+const positionChartRef = ref<HTMLElement>()
+let statusChart: echarts.ECharts | null = null
+let positionChart: echarts.ECharts | null = null
 
 const fetchStats = async () => {
   const userId = userStore.userInfo?.id
@@ -207,9 +238,100 @@ const formatTime = (time: string) => {
   return moment(time).format('MM-DD HH:mm')
 }
 
+// 获取所有申请（用于图表统计）
+const fetchAllApplications = async () => {
+  const userId = userStore.userInfo?.id
+  if (!userId) return
+  try {
+    const res = await request.get<any>(`/recruit/application/page/${userId}`, {
+      params: { page: 0, count: 100 }
+    })
+    allApplications.value = res.items || []
+    await nextTick()
+    renderStatusChart()
+    renderPositionChart()
+  } catch {
+    // ignore
+  }
+}
+
+const renderStatusChart = () => {
+  if (!statusChartRef.value) return
+  statusChart = echarts.init(statusChartRef.value)
+  const apps = allApplications.value
+  const pending = apps.filter(a => a.state === 0).length
+  const passed = apps.filter(a => a.state === 1).length
+  const rejected = apps.filter(a => a.state === 2).length
+  statusChart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {c}份 ({d}%)' },
+    legend: { orient: 'vertical', right: '5%', top: 'center' },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '68%'],
+      center: ['38%', '50%'],
+      avoidLabelOverlap: true,
+      label: { show: false },
+      emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+      data: [
+        { value: pending, name: '待处理', itemStyle: { color: '#faad14' } },
+        { value: passed, name: '已录用', itemStyle: { color: '#52c41a' } },
+        { value: rejected, name: '已拒绝', itemStyle: { color: '#ff4d4f' } }
+      ]
+    }]
+  })
+}
+
+const renderPositionChart = () => {
+  if (!positionChartRef.value) return
+  positionChart = echarts.init(positionChartRef.value)
+  // 统计每个职位的投递量
+  const countMap: Record<string, number> = {}
+  allApplications.value.forEach(a => {
+    const title = a.title || '未知职位'
+    countMap[title] = (countMap[title] || 0) + 1
+  })
+  const sorted = Object.entries(countMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+  const names = sorted.map(e => e[0])
+  const values = sorted.map(e => e[1])
+  positionChart.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '3%', right: '8%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', minInterval: 1 },
+    yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 11, width: 80, overflow: 'truncate' } },
+    series: [{
+      type: 'bar',
+      data: values.reverse(),
+      barMaxWidth: 24,
+      itemStyle: {
+        borderRadius: [0, 4, 4, 0],
+        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+          { offset: 0, color: '#a8d5ff' },
+          { offset: 1, color: '#409eff' }
+        ])
+      },
+      label: { show: true, position: 'right', formatter: '{c}份' }
+    }]
+  })
+}
+
+const handleResize = () => {
+  statusChart?.resize()
+  positionChart?.resize()
+}
+
 onMounted(() => {
   fetchStats()
   fetchPendingResumes()
+  fetchAllApplications()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  statusChart?.dispose()
+  positionChart?.dispose()
 })
 </script>
 

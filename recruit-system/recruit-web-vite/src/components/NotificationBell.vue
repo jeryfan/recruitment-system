@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Bell } from '@element-plus/icons-vue'
+import { ElNotification } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 import moment from 'moment'
@@ -62,7 +63,8 @@ const loading = ref(false)
 const notifications = ref<any[]>([])
 const unreadCount = ref(0)
 
-let pollTimer: ReturnType<typeof setInterval> | null = null
+let ws: WebSocket | null = null
+let wsReconnectTimer: ReturnType<typeof setTimeout> | null = null
 
 const fetchNotifications = async () => {
   const username = userStore.userInfo?.username
@@ -112,14 +114,70 @@ const formatTime = (time: string) => {
   return moment(time).fromNow()
 }
 
+// ---- WebSocket 实时通知 ----
+const connectWebSocket = () => {
+  const token = userStore.token
+  if (!token || !userStore.isLoggedIn) return
+  // 通过 nginx 代理连接 WebSocket
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+  const wsUrl = `${protocol}://${window.location.host}/ws/message?token=${token}`
+
+  ws = new WebSocket(wsUrl)
+
+  ws.onopen = () => {
+    console.log('[WS] Connected to notification service')
+  }
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data)
+      if (msg.type === 'APPLICATION_UPDATE') {
+        // 顶部弹出通知
+        const notifType = msg.state === 1 ? 'success' : msg.state === 2 ? 'error' : 'info'
+        ElNotification({
+          title: msg.title || '申请状态通知',
+          message: msg.content || '您的申请状态已更新',
+          type: notifType,
+          duration: 5000,
+          position: 'top-right'
+        })
+        // 更新未读数
+        unreadCount.value += 1
+      }
+    } catch {
+      // ignore non-JSON messages
+    }
+  }
+
+  ws.onclose = () => {
+    console.log('[WS] Connection closed, reconnecting in 5s...')
+    // 5秒后自动重连
+    wsReconnectTimer = setTimeout(() => {
+      if (userStore.isLoggedIn) connectWebSocket()
+    }, 5000)
+  }
+
+  ws.onerror = () => {
+    ws?.close()
+  }
+}
+
+const disconnectWebSocket = () => {
+  if (wsReconnectTimer) clearTimeout(wsReconnectTimer)
+  if (ws) {
+    ws.onclose = null // 防止触发重连
+    ws.close()
+    ws = null
+  }
+}
+
 onMounted(() => {
   fetchUnreadCount()
-  // 每60秒轮询一次未读数量
-  pollTimer = setInterval(fetchUnreadCount, 60000)
+  connectWebSocket()
 })
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
+  disconnectWebSocket()
 })
 </script>
 

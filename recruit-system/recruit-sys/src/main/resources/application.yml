@@ -48,6 +48,10 @@ lin:
     token-refresh-expire: 2592000
     # 令牌 secret
     token-secret: x88Wf0991079889x8796a0Ac68f9ecJJU17c5Vbe8beod7d8d3e695*4
+    # 开启 WebSocket 实时消息推送
+    websocket:
+      enable: true
+      intercept: true
 logging:
   file:
     max-history:

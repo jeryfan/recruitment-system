@@ -1,5 +1,20 @@
 <template>
   <div class="resume-page">
+    <!-- 导出 PDF 工具栏 -->
+    <div class="export-toolbar">
+      <el-button
+        type="success"
+        :icon="Download"
+        :loading="exporting"
+        @click="exportToPdf"
+      >
+        导出 PDF
+      </el-button>
+    </div>
+
+    <!-- 简历内容区（用于 PDF 截图） -->
+    <div ref="resumeContentRef" class="resume-content">
+
     <!-- 基本信息卡片 -->
     <el-card class="resume-card">
       <template #header>
@@ -169,6 +184,8 @@
       </div>
     </el-card>
 
+    </div><!-- end resume-content -->
+
     <!-- 教育经历弹窗 -->
     <el-dialog v-model="eduDialogVisible" title="教育经历" width="600px">
       <el-form :model="eduForm" label-width="100px">
@@ -243,12 +260,15 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 import type { Resume, Education, Experience } from '@/types'
 import { getMyResume, createResume, updateResume, addEducation, updateEducation, deleteEducation, addExperience, updateExperience, deleteExperience } from '@/api/resume'
 
 const loading = ref(false)
 const resume = ref<Resume | null>(null)
 const isEditingBasic = ref(false)
+const resumeContentRef = ref<HTMLElement>()
+const exporting = ref(false)
 
 const diplomaMap: Record<number, string> = {
   0: '高中及以下',
@@ -436,6 +456,33 @@ const handleDeleteExp = async (id: number) => {
   }
 }
 
+const exportToPdf = async () => {
+  if (!resumeContentRef.value) return
+  exporting.value = true
+  try {
+    const html2canvas = (await import('html2canvas')).default
+    const jsPDF = (await import('jspdf')).jsPDF
+
+    const canvas = await html2canvas(resumeContentRef.value, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    })
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+    const name = resume.value?.realName || '简历'
+    pdf.save(`${name}_简历.pdf`)
+    ElMessage.success('PDF 导出成功')
+  } catch {
+    ElMessage.error('导出失败，请重试')
+  } finally {
+    exporting.value = false
+  }
+}
+
 onMounted(fetchResume)
 </script>
 
@@ -443,6 +490,12 @@ onMounted(fetchResume)
 .resume-page {
   max-width: 900px;
   margin: 0 auto;
+}
+
+.export-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
 }
 
 .resume-card {

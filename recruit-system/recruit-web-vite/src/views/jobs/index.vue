@@ -68,6 +68,55 @@
       </div>
     </div>
 
+    <!-- AI 智能推荐区 -->
+    <div v-if="userStore.isLoggedIn && recommendList.length > 0" class="recommend-section">
+      <div class="recommend-header">
+        <div class="recommend-title">
+          <el-icon color="#409eff" size="20"><MagicStick /></el-icon>
+          <span>AI 为你推荐</span>
+          <el-tag type="primary" size="small" effect="light">基于简历匹配</el-tag>
+        </div>
+        <span class="recommend-hint">根据您的简历技能与求职意向智能匹配</span>
+      </div>
+      <div class="recommend-grid">
+        <el-card
+          v-for="item in recommendList"
+          :key="item.position.id"
+          class="recommend-card"
+          shadow="hover"
+          @click="viewDetail(item.position.id)"
+        >
+          <div class="rec-score-bar">
+            <span class="rec-score-label">匹配度</span>
+            <el-progress
+              :percentage="item.score"
+              :stroke-width="8"
+              :color="item.score >= 70 ? '#67c23a' : item.score >= 40 ? '#409eff' : '#e6a23c'"
+              style="flex:1"
+            />
+            <span class="rec-score-num" :style="{color: item.score >= 70 ? '#67c23a' : item.score >= 40 ? '#409eff' : '#e6a23c'}">
+              {{ item.score }}%
+            </span>
+          </div>
+          <div class="rec-title">{{ item.position.title }}</div>
+          <div class="rec-salary">
+            {{ item.position.salary_down }}-{{ item.position.salary_up }}
+            <span class="rec-salary-unit">元/月</span>
+          </div>
+          <div class="rec-tags">
+            <el-tag size="small" effect="plain">{{ item.position.city || '不限' }}</el-tag>
+            <el-tag size="small" effect="plain" type="info">{{ item.position.category_name }}</el-tag>
+          </div>
+          <div class="rec-company">
+            <el-avatar :size="28" :src="item.position.logo">
+              <el-icon><OfficeBuilding /></el-icon>
+            </el-avatar>
+            <span>{{ item.position.company_name }}</span>
+          </div>
+        </el-card>
+      </div>
+    </div>
+
     <!-- 职位列表 -->
     <div class="job-list" v-loading="loading">
       <el-empty v-if="jobList.length === 0" description="暂无职位">
@@ -158,19 +207,21 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Search, Location, OfficeBuilding, View, Briefcase
+  Search, Location, OfficeBuilding, View, Briefcase, MagicStick
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { Job } from '@/types'
 import { getJobList, applyJob as applyJobApi, getJobDetail } from '@/api/job'
 import { getMyResume } from '@/api/resume'
 import { useUserStore } from '@/stores/user'
+import request from '@/utils/request'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const loading = ref(false)
 const applying = ref<number | null>(null)
+const recommendList = ref<{ score: number; position: any }[]>([])
 const jobList = ref<Job[]>([])
 const page = ref(1)
 const pageSize = ref(12)
@@ -291,7 +342,27 @@ const formatTime = (time?: string) => {
   return `${Math.floor(days / 30)}月前`
 }
 
-onMounted(fetchJobs)
+const fetchRecommendations = async () => {
+  const userId = userStore.userInfo?.id
+  if (!userId) return
+  try {
+    const data = await request.get<{ score: number; position: any }[]>(
+      `/recruit/recommend/${userId}?topN=6`
+    )
+    if (Array.isArray(data)) {
+      recommendList.value = data
+    }
+  } catch {
+    // 静默失败，推荐功能不影响主流程
+  }
+}
+
+onMounted(() => {
+  fetchJobs()
+  if (userStore.isLoggedIn) {
+    fetchRecommendations()
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -499,6 +570,112 @@ onMounted(fetchJobs)
     margin-top: 40px;
     display: flex;
     justify-content: center;
+  }
+}
+
+.recommend-section {
+  margin-bottom: 28px;
+
+  .recommend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .recommend-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #303133;
+    }
+
+    .recommend-hint {
+      font-size: 13px;
+      color: #909399;
+    }
+  }
+
+  .recommend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .recommend-card {
+    cursor: pointer;
+    border-radius: 10px;
+    border: 1.5px solid #e8f4ff;
+    transition: all 0.25s;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(64, 158, 255, 0.15) !important;
+      border-color: #409eff;
+    }
+
+    :deep(.el-card__body) {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rec-score-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .rec-score-label {
+        font-size: 12px;
+        color: #909399;
+        white-space: nowrap;
+      }
+
+      .rec-score-num {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+    }
+
+    .rec-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #303133;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rec-salary {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f56c6c;
+
+      .rec-salary-unit {
+        font-size: 11px;
+        font-weight: 400;
+        margin-left: 2px;
+      }
+    }
+
+    .rec-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .rec-company {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #606266;
+      padding-top: 6px;
+      border-top: 1px solid #f0f0f0;
+    }
   }
 }
 

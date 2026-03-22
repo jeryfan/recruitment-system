@@ -1,7 +1,9 @@
 package com.recruit.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.recruit.model.InterviewDO;
+import com.recruit.module.message.WsHandler;
 import com.recruit.service.InterviewService;
 import io.github.talelin.autoconfigure.exception.NotFoundException;
 import io.github.talelin.core.annotation.GroupRequired;
@@ -10,6 +12,7 @@ import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
 import com.recruit.model.result.ApplicationResultDO;
 import com.recruit.service.ApplicationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.recruit.model.ApplicationDO;
@@ -21,11 +24,14 @@ import com.recruit.vo.UpdatedVO;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Positive;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
 * @author Min
 * @since 2022-04-04
 */
+@Slf4j
 @RestController
 @RequestMapping("/recruit/application")
 @PermissionModule(value = "申请")
@@ -36,6 +42,9 @@ public class ApplicationController {
 
     @Autowired
     private InterviewService interviewService;
+
+    @Autowired(required = false)
+    private WsHandler wsHandler;
     /**
      * 投递简历——添加申请
      * @return
@@ -77,6 +86,21 @@ public class ApplicationController {
             interviewDO.setPositionId(applicationDO.getPositionId());
             interviewDO.setStatus(0);
             interviewService.getBaseMapper().insert(interviewDO);
+        }
+        // WebSocket 实时通知求职者
+        if (wsHandler != null && applicationDO.getUserId() != null) {
+            try {
+                String stateText = state == 1 ? "已通过" : state == 2 ? "已拒绝" : "已更新";
+                Map<String, Object> msg = new HashMap<>();
+                msg.put("type", "APPLICATION_UPDATE");
+                msg.put("title", "申请状态通知");
+                msg.put("content", "您的求职申请" + stateText + "，请及时查看");
+                msg.put("state", state);
+                msg.put("applicationId", id);
+                wsHandler.sendMessage(applicationDO.getUserId(), new ObjectMapper().writeValueAsString(msg));
+            } catch (Exception e) {
+                log.warn("WebSocket notification failed: {}", e.getMessage());
+            }
         }
         return new UpdatedVO(7100);
     }
