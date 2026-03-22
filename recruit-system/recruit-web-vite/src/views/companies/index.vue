@@ -1,95 +1,73 @@
 <template>
   <div class="companies-page">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-text">
-        <h1>优质企业</h1>
-        <p>探索旅游行业 <strong>{{ total }}</strong> 家优秀企业，找到你的理想雇主</p>
-      </div>
-      <div class="header-badge">
-        <el-icon size="48" color="rgba(255,255,255,0.15)"><OfficeBuilding /></el-icon>
-      </div>
-    </div>
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">探索优质企业</h1>
+        <p class="hero-sub">旅游行业 <strong>{{ total }}</strong> 家认证企业，找到你的理想雇主</p>
 
-    <!-- 搜索栏 -->
-    <div class="search-section">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索企业名称"
-        size="large"
-        clearable
-        class="search-input"
-        @keyup.enter="handleSearch"
-      >
-        <template #append>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-        </template>
-      </el-input>
-    </div>
-
-    <!-- 企业统计 -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <span class="stat-number">{{ total }}</span>
-        <span class="stat-label">认证企业</span>
+        <div class="hero-search">
+          <div class="search-wrap">
+            <el-icon class="search-icon"><Search /></el-icon>
+            <input
+              v-model="searchKeyword"
+              class="search-input-inner"
+              placeholder="搜索企业名称..."
+              @keyup.enter="handleSearch"
+            />
+            <button class="search-btn" @click="handleSearch">搜索</button>
+          </div>
+        </div>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number">500+</span>
-        <span class="stat-label">在招职位</span>
+      <div class="hero-deco">
+        <el-icon size="120" color="rgba(255,255,255,0.06)"><OfficeBuilding /></el-icon>
       </div>
     </div>
 
     <!-- 企业列表 -->
     <div class="company-list" v-loading="loading">
-      <el-empty v-if="companyList.length === 0" description="暂无企业">
-        <template #image>
-          <el-icon :size="60" color="#dcdfe6"><OfficeBuilding /></el-icon>
-        </template>
-      </el-empty>
+      <el-empty v-if="companyList.length === 0 && !loading" description="暂无企业" />
 
       <div v-else class="company-grid">
-        <el-card
+        <div
           v-for="company in companyList"
           :key="company.id"
           class="company-card"
-          shadow="hover"
           @click="viewDetail(company.id)"
         >
-          <div class="company-header">
-            <el-avatar :size="72" :src="company.logo" class="company-logo">
-              <el-icon :size="32"><OfficeBuilding /></el-icon>
+          <!-- Logo + 认证标志 -->
+          <div class="cc-head">
+            <el-avatar :size="64" :src="company.logo" shape="square" class="cc-logo">
+              <el-icon size="28"><OfficeBuilding /></el-icon>
             </el-avatar>
-            <div class="company-badge" v-if="company.state === 1">
-              <el-icon><Select /></el-icon>
+            <div class="cc-cert" v-if="company.state === 1">
+              <el-icon size="11"><Select /></el-icon>
               已认证
             </div>
           </div>
 
-          <div class="company-body">
-            <h3 class="company-name" :title="company.name">{{ company.name }}</h3>
-            <p class="company-city">
-              <el-icon><Location /></el-icon>
+          <!-- 公司信息 -->
+          <div class="cc-body">
+            <h3 class="cc-name">{{ company.name }}</h3>
+            <p class="cc-city">
+              <el-icon size="12"><Location /></el-icon>
               {{ company.city || '未知城市' }}
             </p>
-            <p class="company-mission" v-if="company.mission">
-              {{ company.mission }}
+            <p class="cc-desc" v-if="company.mission || company.description">
+              {{ truncate(company.mission || company.description, 55) }}
             </p>
+            <p class="cc-desc placeholder" v-else>暂无公司介绍</p>
           </div>
 
-          <div class="company-footer">
-            <div class="company-tags">
-              <el-tag size="small" effect="plain" v-if="company.foreignName">跨国企业</el-tag>
-              <el-tag size="small" effect="plain" type="success">热招中</el-tag>
+          <!-- 底部标签 + 箭头 -->
+          <div class="cc-foot">
+            <div class="cc-tags">
+              <span class="cc-tag hot">热招中</span>
+              <span class="cc-tag foreign" v-if="company.foreignName">跨国</span>
             </div>
-            <el-button type="primary" link>
-              查看详情 <el-icon><ArrowRight /></el-icon>
-            </el-button>
+            <span class="cc-arrow">查看职位 →</span>
           </div>
-        </el-card>
+        </div>
       </div>
 
       <!-- 分页 -->
@@ -112,7 +90,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Search, OfficeBuilding, Location, ArrowRight, Select } from '@element-plus/icons-vue'
+import { Search, OfficeBuilding, Location, Select } from '@element-plus/icons-vue'
 import { getCompanyList } from '@/api/company'
 
 const router = useRouter()
@@ -134,7 +112,7 @@ const fetchCompanies = async () => {
     })
     companyList.value = res.list
     total.value = res.total
-  } catch (error) {
+  } catch {
     ElMessage.error('获取企业列表失败')
   } finally {
     loading.value = false
@@ -160,6 +138,11 @@ const viewDetail = (id: number) => {
   router.push({ path: '/jobs', query: { companyId: String(id) } })
 }
 
+const truncate = (text: string, len: number) => {
+  if (!text) return ''
+  return text.length > len ? text.slice(0, len) + '...' : text
+}
+
 onMounted(fetchCompanies)
 </script>
 
@@ -167,229 +150,256 @@ onMounted(fetchCompanies)
 .companies-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 0 20px 60px;
+}
 
-  .page-header {
-    background: linear-gradient(135deg, #134e5e 0%, #0d4f4b 100%);
-    border-radius: 16px;
-    padding: 32px 48px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+/* ——— Hero ——— */
+.hero-section {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+  border-radius: 20px;
+  padding: 52px 48px 44px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
 
-    .header-text {
-      h1 {
-        font-size: 30px;
-        font-weight: 700;
-        color: #fff;
-        margin: 0 0 10px 0;
-      }
-
-      p {
-        font-size: 15px;
-        color: rgba(255,255,255,0.65);
-        margin: 0;
-
-        strong { color: #67C23A; }
-      }
-    }
-
-    .header-badge {
-      opacity: 0.4;
-    }
+  &::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: 120px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 70%);
+    border-radius: 50%;
   }
 
-  .search-section {
-    max-width: 560px;
-    margin: 0 auto 24px;
-
-    .search-input {
-      :deep(.el-input__wrapper) {
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        padding: 4px 4px 4px 16px;
-      }
-
-      :deep(.el-input__inner) {
-        height: 44px;
-        font-size: 15px;
-      }
-
-      :deep(.el-input-group__append) {
-        background: #409eff;
-        border-color: #409eff;
-        padding: 0 24px;
-
-        .el-button {
-          color: #fff;
-          font-size: 15px;
-          font-weight: 500;
-        }
-      }
-    }
+  .hero-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
   }
 
-  .stats-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    margin-bottom: 32px;
-    padding: 16px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #ebeef5 100%);
-    border-radius: 12px;
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-
-      .stat-number {
-        font-size: 28px;
-        font-weight: 700;
-        color: #409eff;
-      }
-
-      .stat-label {
-        font-size: 14px;
-        color: #606266;
-      }
-    }
-
-    .stat-divider {
-      width: 1px;
-      height: 40px;
-      background: #dcdfe6;
-    }
+  .hero-deco {
+    flex-shrink: 0;
+    margin-left: 24px;
+    position: relative;
+    z-index: 1;
   }
 
-  .company-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+  .hero-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 10px;
+    letter-spacing: -0.5px;
   }
 
-  .company-card {
-    cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.3s;
-
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
-    }
-
-    :deep(.el-card__body) {
-      padding: 24px;
-    }
-
-    .company-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-
-      .company-logo {
-        border: 2px solid #ebeef5;
-      }
-
-      .company-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        background: rgba(103, 194, 58, 0.1);
-        color: #67c23a;
-        font-size: 12px;
-        border-radius: 20px;
-
-        .el-icon {
-          font-size: 12px;
-        }
-      }
-    }
-
-    .company-body {
-      margin-bottom: 20px;
-
-      .company-name {
-        font-size: 18px;
-        font-weight: 600;
-        color: #303133;
-        margin: 0 0 8px 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .company-city {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 14px;
-        color: #606266;
-        margin: 0 0 8px 0;
-
-        .el-icon {
-          color: #909399;
-        }
-      }
-
-      .company-mission {
-        font-size: 13px;
-        color: #909399;
-        line-height: 1.5;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-      }
-    }
-
-    .company-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 16px;
-      border-top: 1px solid #ebeef5;
-
-      .company-tags {
-        display: flex;
-        gap: 8px;
-      }
-
-      .el-button {
-        font-size: 13px;
-
-        .el-icon {
-          margin-left: 2px;
-        }
-      }
-    }
-  }
-
-  .pagination-wrapper {
-    margin-top: 40px;
-    display: flex;
-    justify-content: center;
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    margin: 0 0 28px;
+    strong { color: #6ee7b7; font-weight: 600; }
   }
 }
 
-@media (max-width: 768px) {
-  .companies-page {
-    padding: 0 12px 32px;
+/* 搜索框 */
+.hero-search {
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px 6px 6px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    max-width: 560px;
 
-    .page-header {
-      h1 {
-        font-size: 24px;
+    .search-icon {
+      color: #9ca3af;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .search-input-inner {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #111827;
+      background: transparent;
+      height: 42px;
+      min-width: 0;
+
+      &::placeholder { color: #9ca3af; }
+    }
+
+    .search-btn {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0 28px;
+      height: 42px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+/* ——— 企业卡片网格 ——— */
+.company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.company-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  &:hover {
+    border-color: #059669;
+    box-shadow: 0 8px 28px rgba(5,150,105,0.12);
+    transform: translateY(-3px);
+
+    .cc-name { color: #059669; }
+    .cc-arrow { color: #059669; transform: translateX(3px); }
+  }
+
+  /* 头部：logo + 认证 */
+  .cc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+
+    .cc-logo {
+      border-radius: 12px;
+      border: 1.5px solid #e5e7eb;
+    }
+
+    .cc-cert {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 10px;
+      background: #ecfdf5;
+      color: #059669;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 20px;
+      border: 1px solid #a7f3d0;
+    }
+  }
+
+  /* 主体 */
+  .cc-body {
+    flex: 1;
+    margin-bottom: 16px;
+
+    .cc-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+
+    .cc-city {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #6b7280;
+      margin: 0 0 10px;
+    }
+
+    .cc-desc {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin: 0;
+      min-height: 42px;
+
+      &.placeholder { color: #d1d5db; font-style: italic; }
+    }
+  }
+
+  /* 底部 */
+  .cc-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid #f3f4f6;
+
+    .cc-tags {
+      display: flex;
+      gap: 6px;
+
+      .cc-tag {
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+
+        &.hot {
+          background: #fef3c7;
+          color: #d97706;
+        }
+
+        &.foreign {
+          background: #eff6ff;
+          color: #3b82f6;
+        }
       }
     }
 
-    .company-grid {
-      grid-template-columns: 1fr;
+    .cc-arrow {
+      font-size: 13px;
+      color: #9ca3af;
+      transition: all 0.2s;
+      display: inline-block;
     }
   }
+}
+
+.pagination-wrapper {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ——— 响应式 ——— */
+@media (max-width: 768px) {
+  .companies-page { padding: 0 12px 40px; }
+
+  .hero-section {
+    padding: 32px 20px 28px;
+    .hero-deco { display: none; }
+    .hero-title { font-size: 24px; }
+    .search-wrap { max-width: 100%; }
+  }
+
+  .company-grid { grid-template-columns: 1fr; }
 }
 </style>

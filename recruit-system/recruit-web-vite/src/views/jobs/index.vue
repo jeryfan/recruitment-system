@@ -1,195 +1,167 @@
 <template>
   <div class="jobs-page">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-text">
-        <h1>发现机会</h1>
-        <p>浏览旅游行业 <strong>{{ total > 0 ? total + '+' : '' }}</strong> 个优质职位，开启职业新篇章</p>
-      </div>
-      <div class="header-tags">
-        <span v-for="tag in quickTags" :key="tag" class="quick-tag" @click="quickSearch(tag)">{{ tag }}</span>
+    <!-- 页面头部 + 搜索 -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">发现你的理想职位</h1>
+        <p class="hero-sub">旅游行业 <strong>{{ total > 0 ? total + '+' : '' }}</strong> 个优质机会正在等你</p>
+
+        <!-- 主搜索框 -->
+        <div class="hero-search">
+          <div class="search-wrap">
+            <el-icon class="search-icon"><Search /></el-icon>
+            <input
+              v-model="searchForm.keyword"
+              class="search-input-inner"
+              placeholder="搜索职位、公司名称..."
+              @keyup.enter="handleSearch"
+            />
+            <el-select
+              v-model="searchForm.city"
+              placeholder="城市"
+              clearable
+              class="city-select"
+              @change="handleSearch"
+            >
+              <el-option label="全部城市" value="" />
+              <el-option label="北京" value="北京" />
+              <el-option label="上海" value="上海" />
+              <el-option label="广州" value="广州" />
+              <el-option label="深圳" value="深圳" />
+              <el-option label="杭州" value="杭州" />
+              <el-option label="成都" value="成都" />
+              <el-option label="西安" value="西安" />
+            </el-select>
+            <button class="search-btn" @click="handleSearch">搜索</button>
+          </div>
+        </div>
+
+        <!-- 热门标签 -->
+        <div class="hot-tags">
+          <span class="hot-label">热门：</span>
+          <span v-for="tag in quickTags" :key="tag" class="hot-tag" @click="quickSearch(tag)">{{ tag }}</span>
+        </div>
       </div>
     </div>
 
-    <!-- 搜索和筛选区 -->
-    <div class="filter-section">
-      <div class="search-bar">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="搜索职位名称、公司名称"
-          size="large"
-          clearable
-          class="search-input"
-          @keyup.enter="handleSearch"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        <el-button type="primary" size="large" @click="handleSearch">
-          搜索
-        </el-button>
-      </div>
-
-      <div class="filter-bar">
-        <el-select
-          v-model="searchForm.city"
-          placeholder="城市"
-          clearable
-          @change="handleSearch"
-          class="filter-item"
-        >
-          <el-option label="全部城市" value="" />
-          <el-option label="北京" value="北京" />
-          <el-option label="上海" value="上海" />
-          <el-option label="广州" value="广州" />
-          <el-option label="深圳" value="深圳" />
-          <el-option label="杭州" value="杭州" />
-          <el-option label="成都" value="成都" />
-          <el-option label="西安" value="西安" />
-        </el-select>
-
+    <!-- 筛选条 -->
+    <div class="filter-strip">
+      <div class="filter-left">
         <el-select
           v-model="searchForm.categoryId"
           placeholder="职位分类"
           clearable
           @change="handleSearch"
-          class="filter-item"
+          size="default"
         >
           <el-option label="全部分类" value="" />
           <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
         </el-select>
-
         <el-select
           v-model="searchForm.sort"
-          placeholder="排序方式"
           @change="handleSearch"
-          class="filter-item"
+          size="default"
         >
           <el-option label="最新发布" value="new" />
           <el-option label="薪资最高" value="salary" />
           <el-option label="浏览最多" value="hot" />
         </el-select>
       </div>
+      <div class="filter-right" v-if="total > 0">
+        共 <strong>{{ total }}</strong> 个职位
+      </div>
     </div>
 
     <!-- AI 智能推荐区 -->
     <div v-if="userStore.isLoggedIn && recommendList.length > 0" class="recommend-section">
-      <div class="recommend-header">
-        <div class="recommend-title">
-          <el-icon color="#409eff" size="20"><MagicStick /></el-icon>
-          <span>AI 为你推荐</span>
-          <el-tag type="primary" size="small" effect="light">基于简历匹配</el-tag>
-        </div>
-        <span class="recommend-hint">根据您的简历技能与求职意向智能匹配</span>
+      <div class="section-title">
+        <el-icon color="#6366f1" size="18"><MagicStick /></el-icon>
+        <span>AI 智能推荐</span>
+        <el-tag type="primary" size="small" effect="light" style="margin-left:6px">基于简历匹配</el-tag>
+        <span class="section-hint">根据您的简历技能智能匹配</span>
       </div>
       <div class="recommend-grid">
-        <el-card
+        <div
           v-for="item in recommendList"
           :key="item.position.id"
-          class="recommend-card"
-          shadow="hover"
+          class="rec-card"
           @click="viewDetail(item.position.id)"
         >
-          <div class="rec-score-bar">
-            <span class="rec-score-label">匹配度</span>
-            <el-progress
-              :percentage="item.score"
-              :stroke-width="8"
-              :color="item.score >= 70 ? '#67c23a' : item.score >= 40 ? '#409eff' : '#e6a23c'"
-              style="flex:1"
-            />
-            <span class="rec-score-num" :style="{color: item.score >= 70 ? '#67c23a' : item.score >= 40 ? '#409eff' : '#e6a23c'}">
+          <div class="rec-match">
+            <span class="rec-score" :class="item.score >= 70 ? 'high' : item.score >= 40 ? 'mid' : 'low'">
               {{ item.score }}%
             </span>
+            <span class="rec-match-label">匹配</span>
           </div>
-          <div class="rec-title">{{ item.position.title }}</div>
-          <div class="rec-salary">
-            {{ item.position.salary_down }}-{{ item.position.salary_up }}
-            <span class="rec-salary-unit">元/月</span>
-          </div>
-          <div class="rec-tags">
-            <el-tag size="small" effect="plain">{{ item.position.city || '不限' }}</el-tag>
-            <el-tag size="small" effect="plain" type="info">{{ item.position.category_name }}</el-tag>
+          <div class="rec-body">
+            <div class="rec-title">{{ item.position.title }}</div>
+            <div class="rec-salary">{{ item.position.salary_down }}-{{ item.position.salary_up }}<span>元/月</span></div>
+            <div class="rec-meta">
+              <span>{{ item.position.city || '不限' }}</span>
+              <span>·</span>
+              <span>{{ item.position.category_name }}</span>
+            </div>
           </div>
           <div class="rec-company">
-            <el-avatar :size="28" :src="item.position.logo">
-              <el-icon><OfficeBuilding /></el-icon>
-            </el-avatar>
+            <el-avatar :size="24" :src="item.position.logo" shape="square"><el-icon><OfficeBuilding /></el-icon></el-avatar>
             <span>{{ item.position.company_name }}</span>
           </div>
-        </el-card>
+        </div>
       </div>
     </div>
 
     <!-- 职位列表 -->
     <div class="job-list" v-loading="loading">
-      <el-empty v-if="jobList.length === 0" description="暂无职位">
-        <template #image>
-          <el-icon :size="60" color="#dcdfe6"><Briefcase /></el-icon>
-        </template>
+      <el-empty v-if="jobList.length === 0 && !loading" description="暂无匹配职位">
         <el-button type="primary" @click="resetSearch">重置筛选</el-button>
       </el-empty>
 
       <div v-else class="job-grid">
-        <el-card
+        <div
           v-for="job in jobList"
           :key="job.id"
           class="job-card"
-          shadow="hover"
           @click="viewDetail(job.id)"
         >
-          <div class="job-main">
-            <div class="job-header">
-              <h3 class="job-title" :title="job.title">{{ job.title }}</h3>
-              <div class="job-salary">
-                <span class="salary-num">{{ job.salaryMin }}-{{ job.salaryMax }}K</span>
-                <span class="salary-unit">/月</span>
+          <!-- 顶部：薪资 + 标题 -->
+          <div class="jc-top">
+            <div class="jc-title-wrap">
+              <h3 class="jc-title">{{ job.title }}</h3>
+              <div class="jc-salary">{{ job.salaryMin }}-{{ job.salaryMax }}K</div>
+            </div>
+            <div class="jc-tags">
+              <span class="jc-tag loc">
+                <el-icon size="11"><Location /></el-icon>{{ job.city || '不限' }}
+              </span>
+              <span v-if="job.experience" class="jc-tag">{{ job.experience }}</span>
+              <span v-if="job.education" class="jc-tag">{{ job.education }}</span>
+            </div>
+          </div>
+
+          <!-- 分隔 -->
+          <div class="jc-divider"></div>
+
+          <!-- 底部：公司 + 操作 -->
+          <div class="jc-bottom">
+            <div class="jc-company">
+              <el-avatar :size="36" :src="job.companyLogo" shape="square" class="jc-logo">
+                <el-icon size="16"><OfficeBuilding /></el-icon>
+              </el-avatar>
+              <div class="jc-company-info">
+                <span class="jc-company-name">{{ job.companyName }}</span>
+                <span class="jc-time">{{ formatTime(job.createTime) }}</span>
               </div>
             </div>
-
-            <div class="job-tags">
-              <el-tag size="small" effect="light" class="location-tag">
-                <el-icon><Location /></el-icon>
-                {{ job.city || '不限' }}
-              </el-tag>
-              <el-tag v-if="job.experience" size="small" effect="light" type="info">
-                {{ job.experience }}
-              </el-tag>
-              <el-tag v-if="job.education" size="small" effect="light" type="info">
-                {{ job.education }}
-              </el-tag>
-            </div>
-          </div>
-
-          <div class="job-divider"></div>
-
-          <div class="job-company">
-            <el-avatar :size="40" :src="job.companyLogo" class="company-avatar">
-              <el-icon><OfficeBuilding /></el-icon>
-            </el-avatar>
-            <div class="company-info">
-              <span class="company-name">{{ job.companyName }}</span>
-              <span class="job-time">
-                <el-icon><View /></el-icon>
-                {{ formatNumber(job.hits) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="job-footer">
-            <span class="publish-time">{{ formatTime(job.createTime) }}</span>
-            <el-button
-              type="primary"
-              size="small"
-              round
+            <button
+              class="jc-apply-btn"
               @click.stop="applyJob(job)"
-              :loading="applying === job.id"
+              :disabled="applying === job.id"
             >
-              立即投递
-            </el-button>
+              <span v-if="applying === job.id">投递中...</span>
+              <span v-else>立即投递</span>
+            </button>
           </div>
-        </el-card>
+        </div>
       </div>
 
       <!-- 分页 -->
@@ -212,7 +184,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Search, Location, OfficeBuilding, View, Briefcase, MagicStick
+  Search, Location, OfficeBuilding, Briefcase, MagicStick
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { Job } from '@/types'
@@ -239,7 +211,7 @@ const searchForm = reactive({
   sort: 'new'
 })
 
-const quickTags = ['导游', '酒店管理', '旅行顾问', '空乘', '景区', '计调']
+const quickTags = ['导游', '酒店管理', '旅行顾问', '空乘', '景区运营', '计调']
 
 const quickSearch = (tag: string) => {
   searchForm.keyword = tag
@@ -317,37 +289,22 @@ const applyJob = async (job: Job) => {
       return
     }
     const userId = userStore.userInfo?.id
-    if (!userId) {
-      ElMessage.warning('请先登录')
-      return
-    }
-    // 获取职位详情以确保 hrId 和 companyId 的准确性
+    if (!userId) { ElMessage.warning('请先登录'); return }
     const jobDetail = await getJobDetail(job.id)
     await applyJobApi(job.id, resume.id, jobDetail.hrId || 0, jobDetail.companyId || 0, userId)
     ElMessage.success('投递成功')
-  } catch (error) {
+  } catch {
     ElMessage.error('投递失败，请稍后重试')
   } finally {
     applying.value = null
   }
 }
 
-// 格式化数字
-const formatNumber = (num: number) => {
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
-  return num.toString()
-}
-
-// 格式化时间
 const formatTime = (time?: string) => {
   if (!time) return ''
   const date = new Date(time)
   const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
+  const days = Math.floor((now.getTime() - date.getTime()) / 86400000)
   if (days === 0) return '今天'
   if (days === 1) return '昨天'
   if (days < 7) return `${days}天前`
@@ -362,19 +319,13 @@ const fetchRecommendations = async () => {
     const data = await request.get<{ score: number; position: any }[]>(
       `/recruit/recommend/${userId}?topN=6`
     )
-    if (Array.isArray(data)) {
-      recommendList.value = data
-    }
-  } catch {
-    // 静默失败，推荐功能不影响主流程
-  }
+    if (Array.isArray(data)) recommendList.value = data
+  } catch { /* 静默失败 */ }
 }
 
 onMounted(() => {
   fetchJobs()
-  if (userStore.isLoggedIn) {
-    fetchRecommendations()
-  }
+  if (userStore.isLoggedIn) fetchRecommendations()
 })
 </script>
 
@@ -382,385 +333,478 @@ onMounted(() => {
 .jobs-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 0 20px 60px;
+}
 
-  .page-header {
-    background: linear-gradient(135deg, #1a1a4e 0%, #0f3460 100%);
-    border-radius: 16px;
-    padding: 36px 48px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+/* ——— Hero 搜索区 ——— */
+.hero-section {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a8a 100%);
+  border-radius: 20px;
+  padding: 52px 48px 44px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
 
-    .header-text {
-      h1 {
-        font-size: 30px;
-        font-weight: 700;
-        color: #fff;
-        margin: 0 0 10px 0;
-      }
-
-      p {
-        font-size: 15px;
-        color: rgba(255,255,255,0.65);
-        margin: 0;
-
-        strong { color: #409EFF; }
-      }
-    }
-
-    .header-tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-
-      .quick-tag {
-        padding: 5px 14px;
-        background: rgba(255,255,255,0.12);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 20px;
-        font-size: 13px;
-        color: rgba(255,255,255,0.85);
-        cursor: pointer;
-        transition: all 0.2s;
-        backdrop-filter: blur(4px);
-
-        &:hover {
-          background: rgba(64,158,255,0.3);
-          border-color: #409EFF;
-          color: #fff;
-        }
-      }
-    }
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%);
+    border-radius: 50%;
   }
 
-  .filter-section {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-
-    .search-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-
-      .search-input {
-        flex: 1;
-
-        :deep(.el-input__wrapper) {
-          padding-left: 12px;
-        }
-
-        :deep(.el-input__inner) {
-          height: 44px;
-          font-size: 15px;
-        }
-      }
-
-      .el-button {
-        padding: 0 32px;
-        font-size: 15px;
-        font-weight: 500;
-      }
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-
-      .filter-item {
-        width: 160px;
-      }
-    }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%);
+    border-radius: 50%;
   }
 
-  .job-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+  .hero-content {
+    position: relative;
+    z-index: 1;
   }
 
-  .job-card {
-    cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.3s;
-
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
-    }
-
-    :deep(.el-card__body) {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .job-main {
-      .job-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
-
-        .job-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #303133;
-          margin: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          flex: 1;
-          padding-right: 12px;
-        }
-
-        .job-salary {
-          flex-shrink: 0;
-
-          .salary-num {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f56c6c;
-          }
-
-          .salary-unit {
-            font-size: 12px;
-            color: #f56c6c;
-            margin-left: 2px;
-          }
-        }
-      }
-
-      .job-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-
-        .location-tag {
-          display: flex;
-          align-items: center;
-          gap: 2px;
-
-          .el-icon {
-            font-size: 12px;
-          }
-        }
-      }
-    }
-
-    .job-divider {
-      height: 1px;
-      background: #ebeef5;
-    }
-
-    .job-company {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .company-avatar {
-        border: 1px solid #ebeef5;
-      }
-
-      .company-info {
-        flex: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .company-name {
-          font-size: 14px;
-          color: #606266;
-          font-weight: 500;
-        }
-
-        .job-time {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 12px;
-          color: #909399;
-
-          .el-icon {
-            font-size: 14px;
-          }
-        }
-      }
-    }
-
-    .job-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 12px;
-      border-top: 1px solid #ebeef5;
-
-      .publish-time {
-        font-size: 12px;
-        color: #909399;
-      }
-
-      .el-button {
-        font-weight: 500;
-      }
-    }
+  .hero-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 10px;
+    letter-spacing: -0.5px;
   }
 
-  .pagination-wrapper {
-    margin-top: 40px;
-    display: flex;
-    justify-content: center;
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    margin: 0 0 28px;
+    strong { color: #93c5fd; font-weight: 600; }
   }
 }
 
+/* 搜索框 */
+.hero-search {
+  margin-bottom: 18px;
+
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px 6px 6px 16px;
+    gap: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    max-width: 720px;
+
+    .search-icon {
+      color: #9ca3af;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .search-input-inner {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #111827;
+      background: transparent;
+      height: 42px;
+      min-width: 0;
+
+      &::placeholder { color: #9ca3af; }
+    }
+
+    .city-select {
+      width: 120px;
+      flex-shrink: 0;
+      margin: 0 6px;
+
+      :deep(.el-input__wrapper) {
+        box-shadow: none !important;
+        border-left: 1px solid #e5e7eb;
+        border-radius: 0;
+        padding-left: 12px;
+      }
+    }
+
+    .search-btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0 28px;
+      height: 42px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+        transform: translateY(-1px);
+      }
+
+      &:active { transform: translateY(0); }
+    }
+  }
+}
+
+/* 热门标签 */
+.hot-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .hot-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .hot-tag {
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(99,102,241,0.35);
+      border-color: rgba(99,102,241,0.6);
+      color: #fff;
+    }
+  }
+}
+
+/* ——— 筛选条 ——— */
+.filter-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+  .filter-left {
+    display: flex;
+    gap: 12px;
+
+    .el-select { width: 140px; }
+  }
+
+  .filter-right {
+    font-size: 14px;
+    color: #6b7280;
+    strong { color: #374151; font-weight: 600; }
+  }
+}
+
+/* ——— AI 推荐 ——— */
 .recommend-section {
   margin-bottom: 28px;
 
-  .recommend-header {
+  .section-title {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 6px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
     margin-bottom: 16px;
 
-    .recommend-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #303133;
-    }
-
-    .recommend-hint {
+    .section-hint {
+      margin-left: auto;
       font-size: 13px;
-      color: #909399;
+      color: #9ca3af;
+      font-weight: 400;
     }
   }
 
   .recommend-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
   }
 
-  .recommend-card {
+  .rec-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
     cursor: pointer;
-    border-radius: 10px;
-    border: 1.5px solid #e8f4ff;
     transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(64, 158, 255, 0.15) !important;
-      border-color: #409eff;
+      border-color: #6366f1;
+      box-shadow: 0 6px 20px rgba(99,102,241,0.12);
+      transform: translateY(-2px);
     }
 
-    :deep(.el-card__body) {
-      padding: 16px;
+    .rec-match {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+      align-items: baseline;
+      gap: 4px;
 
-    .rec-score-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      .rec-score {
+        font-size: 22px;
+        font-weight: 800;
+        &.high { color: #10b981; }
+        &.mid  { color: #6366f1; }
+        &.low  { color: #f59e0b; }
+      }
 
-      .rec-score-label {
+      .rec-match-label {
         font-size: 12px;
-        color: #909399;
+        color: #9ca3af;
+      }
+    }
+
+    .rec-body {
+      .rec-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
+        margin-bottom: 6px;
       }
 
-      .rec-score-num {
-        font-size: 13px;
+      .rec-salary {
+        font-size: 17px;
         font-weight: 700;
-        white-space: nowrap;
+        color: #ef4444;
+        margin-bottom: 6px;
+        span { font-size: 11px; font-weight: 400; margin-left: 2px; }
       }
-    }
 
-    .rec-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #303133;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .rec-salary {
-      font-size: 16px;
-      font-weight: 700;
-      color: #f56c6c;
-
-      .rec-salary-unit {
-        font-size: 11px;
-        font-weight: 400;
-        margin-left: 2px;
+      .rec-meta {
+        font-size: 12px;
+        color: #6b7280;
+        display: flex;
+        gap: 4px;
       }
-    }
-
-    .rec-tags {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
     }
 
     .rec-company {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
-      color: #606266;
-      padding-top: 6px;
-      border-top: 1px solid #f0f0f0;
+      font-size: 12px;
+      color: #6b7280;
+      padding-top: 8px;
+      border-top: 1px solid #f3f4f6;
     }
   }
 }
 
-@media (max-width: 768px) {
-  .jobs-page {
-    padding: 0 12px 32px;
+/* ——— 职位卡片 ——— */
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
 
-    .page-header {
-      h1 {
-        font-size: 24px;
-      }
-    }
+.job-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 
-    .filter-section {
-      padding: 16px;
+  &:hover {
+    border-color: #6366f1;
+    box-shadow: 0 8px 28px rgba(99,102,241,0.13);
+    transform: translateY(-3px);
 
-      .search-bar {
-        .search-input {
-          :deep(.el-input__inner) {
-            height: 40px;
-          }
-        }
-
-        .el-button {
-          padding: 0 16px;
-        }
-      }
-
-      .filter-bar {
-        .filter-item {
-          width: calc(50% - 6px);
-        }
-      }
-    }
-
-    .job-grid {
-      grid-template-columns: 1fr;
+    .jc-title { color: #4f46e5; }
+    .jc-apply-btn {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
     }
   }
+
+  .jc-top {
+    margin-bottom: 16px;
+
+    .jc-title-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .jc-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 12px;
+      transition: color 0.2s;
+    }
+
+    .jc-salary {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ef4444;
+      flex-shrink: 0;
+      white-space: nowrap;
+
+      &::after {
+        content: 'K/月';
+        font-size: 11px;
+        font-weight: 400;
+        margin-left: 2px;
+        color: #f87171;
+      }
+    }
+
+    .jc-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .jc-tag {
+      padding: 3px 9px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+
+      &.loc {
+        background: #eff6ff;
+        color: #3b82f6;
+      }
+    }
+  }
+
+  .jc-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin-bottom: 14px;
+  }
+
+  .jc-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .jc-company {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+
+    .jc-logo {
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .jc-company-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+
+      .jc-company-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .jc-time {
+        font-size: 11px;
+        color: #9ca3af;
+      }
+    }
+  }
+
+  .jc-apply-btn {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+.pagination-wrapper {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ——— 响应式 ——— */
+@media (max-width: 768px) {
+  .jobs-page { padding: 0 12px 40px; }
+
+  .hero-section {
+    padding: 32px 20px 28px;
+
+    .hero-title { font-size: 24px; }
+
+    .search-wrap {
+      flex-wrap: wrap;
+      padding: 8px;
+      gap: 8px;
+
+      .search-icon { display: none; }
+      .search-input-inner { width: 100%; height: 38px; }
+      .city-select { width: 100%; :deep(.el-input__wrapper) { border-left: none; border-top: 1px solid #e5e7eb; border-radius: 0; } }
+      .search-btn { width: 100%; }
+    }
+  }
+
+  .filter-strip {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+
+    .filter-left { flex-wrap: wrap; }
+  }
+
+  .job-grid { grid-template-columns: 1fr; }
+  .recommend-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
