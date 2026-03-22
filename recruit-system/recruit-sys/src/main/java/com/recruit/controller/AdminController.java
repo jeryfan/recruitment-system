@@ -27,7 +27,10 @@ import com.recruit.dto.admin.UpdateUserInfoDTO;
 import com.recruit.model.GroupDO;
 import com.recruit.model.PermissionDO;
 import com.recruit.model.UserDO;
+import com.recruit.model.ApplicationDO;
+import com.recruit.model.PositionDO;
 import com.recruit.service.AdminService;
+import com.recruit.service.ApplicationService;
 import com.recruit.service.GroupService;
 import com.recruit.service.UserService;
 import com.recruit.vo.CreatedVO;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Positive;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +82,9 @@ public class AdminController {
 
     @Autowired
     private PositionService positionService;
+
+    @Autowired
+    private ApplicationService applicationService;
 
     @GetMapping("/permission")
     @PermissionMeta(value = "查询所有可分配的权限")
@@ -349,7 +356,84 @@ public class AdminController {
         stats.put("totalPositions", (long) positionService.count());
         // 分类总数
         stats.put("totalCategories", (long) categoryService.count());
+        stats.put("totalApplications", (long) applicationService.count());
         return stats;
+    }
+
+    /**
+     * 各职位分类的职位数量分布（饼图/柱图数据）
+     */
+    @GetMapping("/chart/category")
+    @PermissionMeta(value = "分类分布统计")
+    public List<Map<String, Object>> categoryChart() {
+        List<CategoryDO> categories = categoryService.getAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (CategoryDO cat : categories) {
+            QueryWrapper<PositionDO> wrapper = new QueryWrapper<>();
+            wrapper.eq("category_id", cat.getId()).isNull("delete_time");
+            long count = positionService.count(wrapper);
+            if (count > 0) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("name", cat.getName());
+                item.put("value", count);
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 各城市职位分布（条形图数据）
+     */
+    @GetMapping("/chart/city")
+    @PermissionMeta(value = "城市分布统计")
+    public List<Map<String, Object>> cityChart() {
+        List<PositionDO> all = positionService.list(
+            new QueryWrapper<PositionDO>().isNull("delete_time").eq("state", 1)
+        );
+        Map<String, Long> cityCount = all.stream()
+            .filter(p -> p.getCity() != null && !p.getCity().isEmpty())
+            .collect(Collectors.groupingBy(PositionDO::getCity, Collectors.counting()));
+
+        return cityCount.entrySet().stream()
+            .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+            .limit(10)
+            .map(e -> {
+                Map<String, Object> item = new HashMap<>();
+                item.put("name", e.getKey());
+                item.put("value", e.getValue());
+                return item;
+            })
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * 投递状态漏斗图数据
+     */
+    @GetMapping("/chart/funnel")
+    @PermissionMeta(value = "漏斗图统计")
+    public List<Map<String, Object>> funnelChart() {
+        long totalPositions = positionService.count(
+            new QueryWrapper<PositionDO>().isNull("delete_time")
+        );
+        long totalApplications = applicationService.count();
+        long interviewed = applicationService.count(
+            new QueryWrapper<ApplicationDO>().eq("state", 2)
+        );
+        long pending = applicationService.count(
+            new QueryWrapper<ApplicationDO>().eq("state", 0)
+        );
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        String[] names = {"发布职位", "收到投递", "进入面试", "待处理"};
+        long[] values = {totalPositions, totalApplications, interviewed, pending};
+        for (int i = 0; i < names.length; i++) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", names[i]);
+            item.put("value", values[i]);
+            result.add(item);
+        }
+        return result;
     }
 
 }

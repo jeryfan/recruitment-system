@@ -33,6 +33,16 @@
       </el-card>
 
       <el-card class="stat-card" shadow="hover">
+        <div class="stat-icon" style="background: #f0f5ff; color: #2f54eb;">
+          <el-icon size="32"><Document /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.totalApplications ?? 0 }}</div>
+          <div class="stat-label">投递总数</div>
+        </div>
+      </el-card>
+
+      <el-card class="stat-card" shadow="hover">
         <div class="stat-icon" style="background: #fff0f6; color: #eb2f96;">
           <el-icon size="32"><Warning /></el-icon>
         </div>
@@ -41,21 +51,63 @@
           <div class="stat-label">待审核企业</div>
         </div>
       </el-card>
+
+      <el-card class="stat-card" shadow="hover">
+        <div class="stat-icon" style="background: #fffbe6; color: #d48806;">
+          <el-icon size="32"><Grid /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.totalCategories }}</div>
+          <div class="stat-label">职位分类</div>
+        </div>
+      </el-card>
     </div>
 
-    <!-- 待办事项 + 系统信息 -->
+    <!-- 图表区域 第一行 -->
     <el-row :gutter="20" style="margin-top: 20px;">
+      <!-- 职位分类分布饼图 -->
       <el-col :span="12">
         <el-card shadow="hover">
           <template #header>
-            <div class="card-header">
-              <span>待办事项</span>
-            </div>
+            <span class="chart-title">职位分类分布</span>
+          </template>
+          <div ref="categoryChartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+
+      <!-- 城市职位分布条形图 -->
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="chart-title">城市职位分布 TOP10</span>
+          </template>
+          <div ref="cityChartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 图表区域 第二行 -->
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <!-- 招聘转化漏斗图 -->
+      <el-col :span="10">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="chart-title">招聘转化漏斗</span>
+          </template>
+          <div ref="funnelChartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+
+      <!-- 待办事项 -->
+      <el-col :span="14">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="chart-title">待办事项</span>
           </template>
           <div class="todo-list">
             <div class="todo-item" @click="$router.push('/admin/companies')">
               <div class="todo-info">
-                <el-icon size="24" color="#f56c6c"><Warning /></el-icon>
+                <el-icon size="20" color="#f56c6c"><Warning /></el-icon>
                 <span class="todo-text">待审核企业</span>
               </div>
               <div class="todo-right">
@@ -66,7 +118,7 @@
             </div>
             <div class="todo-item" @click="$router.push('/admin/users')">
               <div class="todo-info">
-                <el-icon size="24" color="#e6a23c"><UserFilled /></el-icon>
+                <el-icon size="20" color="#e6a23c"><UserFilled /></el-icon>
                 <span class="todo-text">用户管理</span>
               </div>
               <div class="todo-right">
@@ -76,253 +128,291 @@
             </div>
             <div class="todo-item" @click="$router.push('/admin/categories')">
               <div class="todo-info">
-                <el-icon size="24" color="#409eff"><Grid /></el-icon>
+                <el-icon size="20" color="#409eff"><Grid /></el-icon>
                 <span class="todo-text">职位分类管理</span>
               </div>
               <div class="todo-right">
-                <el-tag type="info" size="small">共 {{ stats.totalCategories }} 类</el-tag>
-                <el-button type="primary" link size="small" style="margin-left: 8px;">管理</el-button>
+                <el-tag type="info" size="small">{{ stats.totalCategories }} 个分类</el-tag>
+                <el-button type="primary" link size="small" style="margin-left: 8px;">查看</el-button>
+              </div>
+            </div>
+            <div class="todo-item" @click="$router.push('/admin/jobs')">
+              <div class="todo-info">
+                <el-icon size="20" color="#67c23a"><Collection /></el-icon>
+                <span class="todo-text">职位管理</span>
+              </div>
+              <div class="todo-right">
+                <el-tag type="info" size="small">{{ stats.totalPositions }} 个职位</el-tag>
+                <el-button type="primary" link size="small" style="margin-left: 8px;">查看</el-button>
               </div>
             </div>
           </div>
-        </el-card>
-      </el-col>
 
-      <el-col :span="12">
-        <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>数据概览</span>
-            </div>
-          </template>
-          <div class="overview-list">
-            <div class="overview-item">
-              <span class="ov-label">总公司数</span>
-              <el-progress
-                :percentage="getPercent(stats.approvedCompanies, stats.totalCompanies)"
-                :format="() => stats.totalCompanies + '家'"
-                color="#52c41a"
-              />
-            </div>
-            <div class="overview-item">
-              <span class="ov-label">认证通过率</span>
-              <el-progress
-                :percentage="getPercent(stats.approvedCompanies, stats.totalCompanies)"
-                :format="(p: number) => p + '%'"
-                color="#1890ff"
-              />
-            </div>
-            <div class="overview-item">
-              <span class="ov-label">发布职位数</span>
-              <el-progress
-                :percentage="100"
-                :format="() => stats.totalPositions + '个'"
-                color="#fa8c16"
-              />
-            </div>
+          <!-- 系统信息 -->
+          <el-divider />
+          <div class="system-info">
+            <div class="info-row"><span class="info-label">系统版本</span><span class="info-value">v1.0.0</span></div>
+            <div class="info-row"><span class="info-label">后端框架</span><span class="info-value">Spring Boot 2.3.3</span></div>
+            <div class="info-row"><span class="info-label">前端框架</span><span class="info-value">Vue 3.4 + Element Plus</span></div>
+            <div class="info-row"><span class="info-label">数据库</span><span class="info-value">MySQL 8.0</span></div>
+            <div class="info-row"><span class="info-label">数据更新时间</span><span class="info-value">{{ updateTime }}</span></div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-
-    <!-- 快捷操作 -->
-    <el-card shadow="hover" style="margin-top: 20px;">
-      <template #header>
-        <div class="card-header"><span>快捷操作</span></div>
-      </template>
-      <div class="action-list">
-        <div class="action-item" @click="$router.push('/admin/companies')">
-          <el-icon size="28" color="#f56c6c"><OfficeBuilding /></el-icon>
-          <span>企业审核</span>
-        </div>
-        <div class="action-item" @click="$router.push('/admin/users')">
-          <el-icon size="28" color="#409EFF"><UserFilled /></el-icon>
-          <span>用户管理</span>
-        </div>
-        <div class="action-item" @click="$router.push('/admin/categories')">
-          <el-icon size="28" color="#E6A23C"><Grid /></el-icon>
-          <span>分类管理</span>
-        </div>
-        <div class="action-item" @click="$router.push('/admin/profile')">
-          <el-icon size="28" color="#909399"><Setting /></el-icon>
-          <span>个人中心</span>
-        </div>
-      </div>
-    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, UserFilled, OfficeBuilding, Collection, Warning, Grid, Setting } from '@element-plus/icons-vue'
+import { User, OfficeBuilding, Collection, Warning, Grid, Document, UserFilled } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
 import request from '@/utils/request'
 
+const router = useRouter()
 const loading = ref(false)
-const stats = ref({
+const updateTime = ref('')
+
+const stats = ref<Record<string, number>>({
   totalUsers: 0,
-  totalCompanies: 0,
   approvedCompanies: 0,
-  pendingCompanies: 0,
   totalPositions: 0,
+  totalApplications: 0,
+  pendingCompanies: 0,
   totalCategories: 0
 })
 
+// ECharts 实例
+const categoryChartRef = ref<HTMLElement>()
+const cityChartRef = ref<HTMLElement>()
+const funnelChartRef = ref<HTMLElement>()
+let categoryChart: echarts.ECharts | null = null
+let cityChart: echarts.ECharts | null = null
+let funnelChart: echarts.ECharts | null = null
+
 const fetchStats = async () => {
-  loading.value = true
   try {
-    const res = await request.get<any>('/recruit/admin/stats')
-    stats.value = {
-      totalUsers: res.totalUsers || 0,
-      totalCompanies: (res.approvedCompanies || 0) + (res.pendingCompanies || 0),
-      approvedCompanies: res.approvedCompanies || 0,
-      pendingCompanies: res.pendingCompanies || 0,
-      totalPositions: res.totalPositions || 0,
-      totalCategories: res.totalCategories || 0
-    }
-  } catch (error) {
-    ElMessage.warning('获取统计数据失败')
-  } finally {
-    loading.value = false
+    const data = await request.get<Record<string, number>>('/recruit/admin/stats')
+    stats.value = data
+    updateTime.value = new Date().toLocaleString('zh-CN')
+  } catch {
+    ElMessage.error('获取统计数据失败')
   }
 }
 
-const getPercent = (part: number, total: number) => {
-  if (!total) return 0
-  return Math.round((part / total) * 100)
+const fetchCategoryChart = async () => {
+  try {
+    const data = await request.get<{ name: string; value: number }[]>('/recruit/admin/chart/category')
+    if (!categoryChartRef.value) return
+    categoryChart = echarts.init(categoryChartRef.value)
+    categoryChart.setOption({
+      tooltip: { trigger: 'item', formatter: '{b}: {c}个 ({d}%)' },
+      legend: { orient: 'vertical', right: '5%', top: 'center', textStyle: { fontSize: 12 } },
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+        label: { show: false },
+        emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+        data: data
+      }]
+    })
+  } catch { /* 静默失败 */ }
 }
 
-onMounted(fetchStats)
+const fetchCityChart = async () => {
+  try {
+    const data = await request.get<{ name: string; value: number }[]>('/recruit/admin/chart/city')
+    if (!cityChartRef.value) return
+    cityChart = echarts.init(cityChartRef.value)
+    const names = data.map(d => d.name)
+    const values = data.map(d => d.value)
+    cityChart.setOption({
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: '3%', right: '6%', bottom: '3%', containLabel: true },
+      xAxis: { type: 'value', minInterval: 1 },
+      yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 12 } },
+      series: [{
+        type: 'bar',
+        data: values.reverse(),
+        barMaxWidth: 28,
+        itemStyle: {
+          borderRadius: [0, 4, 4, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#83bff6' },
+            { offset: 1, color: '#409eff' }
+          ])
+        },
+        label: { show: true, position: 'right', formatter: '{c}个' }
+      }]
+    })
+  } catch { /* 静默失败 */ }
+}
+
+const fetchFunnelChart = async () => {
+  try {
+    const data = await request.get<{ name: string; value: number }[]>('/recruit/admin/chart/funnel')
+    if (!funnelChartRef.value) return
+    funnelChart = echarts.init(funnelChartRef.value)
+    funnelChart.setOption({
+      tooltip: { trigger: 'item', formatter: '{b}: {c}' },
+      series: [{
+        type: 'funnel',
+        left: '10%', width: '80%',
+        min: 0, minSize: '0%', maxSize: '100%',
+        sort: 'none',
+        gap: 4,
+        label: { show: true, position: 'inside', color: '#fff', fontSize: 13 },
+        itemStyle: { borderWidth: 0 },
+        data: data.map((item, i) => ({
+          ...item,
+          itemStyle: {
+            color: ['#5470c6', '#91cc75', '#fac858', '#ee6666'][i % 4]
+          }
+        }))
+      }]
+    })
+  } catch { /* 静默失败 */ }
+}
+
+const handleResize = () => {
+  categoryChart?.resize()
+  cityChart?.resize()
+  funnelChart?.resize()
+}
+
+onMounted(async () => {
+  loading.value = true
+  await fetchStats()
+  loading.value = false
+  await nextTick()
+  await Promise.all([fetchCategoryChart(), fetchCityChart(), fetchFunnelChart()])
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  categoryChart?.dispose()
+  cityChart?.dispose()
+  funnelChart?.dispose()
+})
 </script>
 
 <style scoped lang="scss">
 .admin-dashboard {
-  .stat-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+  padding: 4px 0;
+}
 
-    .stat-card {
-      cursor: default;
-      :deep(.el-card__body) {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 20px;
-      }
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
 
-      .stat-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      .stat-info {
-        .stat-value {
-          font-size: 28px;
-          font-weight: 700;
-          color: #1a1a2e;
-          margin-bottom: 4px;
-        }
-        .stat-label {
-          font-size: 13px;
-          color: #64748b;
-        }
-      }
-    }
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
   }
-
-  .card-header {
-    font-weight: 600;
-    font-size: 15px;
-    color: #303133;
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .todo-list {
-    .todo-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 8px;
-      border-bottom: 1px solid #f0f0f0;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: background-color 0.2s;
-
-      &:last-child { border-bottom: none; }
-      &:hover { background-color: #f5f7fa; }
-
-      .todo-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-
-        .todo-text {
-          font-size: 14px;
-          color: #606266;
-        }
-      }
-
-      .todo-right {
-        display: flex;
-        align-items: center;
-      }
-    }
-  }
-
-  .overview-list {
+.stat-card {
+  :deep(.el-card__body) {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 8px 0;
-
-    .overview-item {
-      .ov-label {
-        display: block;
-        font-size: 13px;
-        color: #909399;
-        margin-bottom: 8px;
-      }
-    }
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
   }
 
-  .action-list {
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
     display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
-    .action-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 20px 36px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid #f0f0f0;
-
-      &:hover {
-        background-color: #f5f7fa;
-        transform: translateY(-2px);
-        border-color: #dcdfe6;
-      }
-
-      span {
-        font-size: 13px;
-        color: #606266;
-      }
+  .stat-info {
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #303133;
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: #909399;
+      margin-top: 4px;
     }
   }
 }
 
-@media (max-width: 1200px) {
-  .admin-dashboard .stat-cards {
-    grid-template-columns: repeat(2, 1fr);
+.chart-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.chart-container {
+  height: 300px;
+  width: 100%;
+}
+
+.todo-list {
+  .todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 6px;
+    padding: 12px 10px;
+
+    &:hover {
+      background: #f5f7fa;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .todo-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .todo-text {
+        font-size: 14px;
+        color: #303133;
+      }
+    }
+
+    .todo-right {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+.system-info {
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed #f0f0f0;
+
+    &:last-child { border-bottom: none; }
+
+    .info-label { color: #909399; }
+    .info-value { color: #303133; font-weight: 500; }
   }
 }
 </style>
