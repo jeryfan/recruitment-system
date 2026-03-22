@@ -2,8 +2,13 @@
   <div class="jobs-page">
     <!-- 页面头部 -->
     <div class="page-header">
-      <h1>发现机会</h1>
-      <p>浏览旅游行业的优质职位，开启职业新篇章</p>
+      <div class="header-text">
+        <h1>发现机会</h1>
+        <p>浏览旅游行业 <strong>{{ total > 0 ? total + '+' : '' }}</strong> 个优质职位，开启职业新篇章</p>
+      </div>
+      <div class="header-tags">
+        <span v-for="tag in quickTags" :key="tag" class="quick-tag" @click="quickSearch(tag)">{{ tag }}</span>
+      </div>
     </div>
 
     <!-- 搜索和筛选区 -->
@@ -234,6 +239,14 @@ const searchForm = reactive({
   sort: 'new'
 })
 
+const quickTags = ['导游', '酒店管理', '旅行顾问', '空乘', '景区', '计调']
+
+const quickSearch = (tag: string) => {
+  searchForm.keyword = tag
+  page.value = 1
+  fetchJobs()
+}
+
 const categories = ref([
   { id: 1, name: '导游服务' },
   { id: 2, name: '酒店管理' },
@@ -372,20 +385,54 @@ onMounted(() => {
   padding: 0 20px 40px;
 
   .page-header {
-    text-align: center;
-    margin-bottom: 32px;
+    background: linear-gradient(135deg, #1a1a4e 0%, #0f3460 100%);
+    border-radius: 16px;
+    padding: 36px 48px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-    h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #303133;
-      margin: 0 0 12px 0;
+    .header-text {
+      h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 10px 0;
+      }
+
+      p {
+        font-size: 15px;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+
+        strong { color: #409EFF; }
+      }
     }
 
-    p {
-      font-size: 16px;
-      color: #909399;
-      margin: 0;
+    .header-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+
+      .quick-tag {
+        padding: 5px 14px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        font-size: 13px;
+        color: rgba(255,255,255,0.85);
+        cursor: pointer;
+        transition: all 0.2s;
+        backdrop-filter: blur(4px);
+
+        &:hover {
+          background: rgba(64,158,255,0.3);
+          border-color: #409EFF;
+          color: #fff;
+        }
+      }
     }
   }
 

@@ -2,8 +2,13 @@
   <div class="companies-page">
     <!-- 页面头部 -->
     <div class="page-header">
-      <h1>优质企业</h1>
-      <p>探索旅游行业的优秀企业，找到你的理想雇主</p>
+      <div class="header-text">
+        <h1>优质企业</h1>
+        <p>探索旅游行业 <strong>{{ total }}</strong> 家优秀企业，找到你的理想雇主</p>
+      </div>
+      <div class="header-badge">
+        <el-icon size="48" color="rgba(255,255,255,0.15)"><OfficeBuilding /></el-icon>
+      </div>
     </div>
 
     <!-- 搜索栏 -->
@@ -152,7 +157,7 @@ const handlePageChange = (val: number) => {
 }
 
 const viewDetail = (id: number) => {
-  ElMessage.info('企业详情功能开发中')
+  router.push({ path: '/jobs', query: { companyId: String(id) } })
 }
 
 onMounted(fetchCompanies)
@@ -165,20 +170,33 @@ onMounted(fetchCompanies)
   padding: 0 20px 40px;
 
   .page-header {
-    text-align: center;
-    margin-bottom: 32px;
+    background: linear-gradient(135deg, #134e5e 0%, #0d4f4b 100%);
+    border-radius: 16px;
+    padding: 32px 48px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-    h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #303133;
-      margin: 0 0 12px 0;
+    .header-text {
+      h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 10px 0;
+      }
+
+      p {
+        font-size: 15px;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+
+        strong { color: #67C23A; }
+      }
     }
 
-    p {
-      font-size: 16px;
-      color: #909399;
-      margin: 0;
+    .header-badge {
+      opacity: 0.4;
     }
   }
 

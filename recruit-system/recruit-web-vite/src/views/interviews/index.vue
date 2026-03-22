@@ -1,8 +1,11 @@
 <template>
   <div class="interviews-page">
     <div class="page-header">
-      <h2>我的面试</h2>
-      <p class="subtitle">查看HR发来的面试邀请和面试结果</p>
+      <div class="header-text">
+        <h1>我的面试</h1>
+        <p>查看HR发来的面试邀请和面试结果</p>
+      </div>
+      <el-icon size="48" color="rgba(255,255,255,0.15)"><Calendar /></el-icon>
     </div>
 
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
@@ -94,7 +97,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Clock, Location, OfficeBuilding, ChatDotRound, InfoFilled } from '@element-plus/icons-vue'
+import { Clock, Location, OfficeBuilding, ChatDotRound, InfoFilled, Calendar } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 import moment from 'moment'
@@ -167,19 +170,27 @@ onMounted(fetchInterviews)
 }
 
 .page-header {
+  background: linear-gradient(135deg, #0f766e 0%, #0d4f4b 100%);
+  border-radius: 16px;
+  padding: 28px 40px;
   margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #303133;
-    margin: 0 0 8px;
-  }
+  .header-text {
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 6px;
+    }
 
-  .subtitle {
-    color: #909399;
-    font-size: 14px;
-    margin: 0;
+    p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      margin: 0;
+    }
   }
 }
 

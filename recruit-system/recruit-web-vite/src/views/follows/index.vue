@@ -1,8 +1,11 @@
 <template>
   <div class="follows-page">
     <div class="page-header">
-      <h2>关注的公司</h2>
-      <p class="subtitle">关注公司后，公司发布新职位时会收到通知</p>
+      <div class="header-text">
+        <h1>关注的公司</h1>
+        <p>已关注 <strong>{{ followList.length }}</strong> 家企业，第一时间获取新职位通知</p>
+      </div>
+      <el-icon size="48" color="rgba(255,255,255,0.15)"><Collection /></el-icon>
     </div>
 
     <div v-loading="loading" class="company-grid">
@@ -60,7 +63,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { OfficeBuilding, Location } from '@element-plus/icons-vue'
+import { OfficeBuilding, Location, Collection } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 
@@ -122,19 +125,29 @@ onMounted(fetchFollows)
 }
 
 .page-header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%);
+  border-radius: 16px;
+  padding: 28px 40px;
   margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #303133;
-    margin: 0 0 8px;
-  }
+  .header-text {
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 6px;
+    }
 
-  .subtitle {
-    color: #909399;
-    font-size: 14px;
-    margin: 0;
+    p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      margin: 0;
+
+      strong { color: #60a5fa; }
+    }
   }
 }
 

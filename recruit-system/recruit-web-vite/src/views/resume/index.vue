@@ -1,12 +1,17 @@
 <template>
   <div class="resume-page">
-    <!-- 导出 PDF 工具栏 -->
-    <div class="export-toolbar">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div class="header-text">
+        <h1>我的简历</h1>
+        <p>完善简历信息，提高被HR发现的概率</p>
+      </div>
       <el-button
         type="success"
         :icon="Download"
         :loading="exporting"
         @click="exportToPdf"
+        size="large"
       >
         导出 PDF
       </el-button>
@@ -490,12 +495,36 @@ onMounted(fetchResume)
 .resume-page {
   max-width: 900px;
   margin: 0 auto;
-}
 
-.export-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
+  .page-header {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .header-text {
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 6px;
+      }
+
+      p {
+        font-size: 13px;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+      }
+    }
+
+    .el-button {
+      border-radius: 8px;
+      font-weight: 500;
+    }
+  }
 }
 
 .resume-card {

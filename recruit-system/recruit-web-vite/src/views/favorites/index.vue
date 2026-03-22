@@ -1,16 +1,20 @@
 <template>
   <div class="favorites-page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>我的收藏</span>
-        </div>
-      </template>
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div class="header-text">
+        <h1>我的收藏</h1>
+        <p>已收藏 <strong>{{ total }}</strong> 个职位，随时投递</p>
+      </div>
+      <el-icon size="48" color="rgba(255,255,255,0.15)"><Star /></el-icon>
+    </div>
 
-      <el-empty v-if="!favoriteList.length && !loading" description="暂无收藏职位" />
+    <el-empty v-if="!favoriteList.length && !loading" description="暂无收藏职位">
+      <el-button type="primary" @click="$router.push('/jobs')">去找工作</el-button>
+    </el-empty>
 
-      <div v-else v-loading="loading">
-        <div class="job-cards">
+    <div v-else v-loading="loading">
+      <div class="job-cards">
           <div v-for="job in favoriteList" :key="job.id" class="job-card" @click="viewJobDetail(job.id)">
             <div class="job-header">
               <h4>{{ job.title }}</h4>
@@ -38,7 +42,7 @@
         </div>
 
         <!-- 分页 -->
-        <div class="pagination" v-if="total > 0">
+        <div class="pagination" v-if="total > pageSize">
           <el-pagination
             v-model:current-page="page"
             v-model:page-size="pageSize"
@@ -50,7 +54,6 @@
           />
         </div>
       </div>
-    </el-card>
   </div>
 </template>
 
@@ -58,7 +61,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { OfficeBuilding } from '@element-plus/icons-vue'
+import { OfficeBuilding, Star } from '@element-plus/icons-vue'
 import { getFavoriteList, cancelFavorite, applyJob, getJobDetail } from '@/api/job'
 import { getMyResume } from '@/api/resume'
 import { useUserStore } from '@/stores/user'
@@ -147,10 +150,33 @@ onMounted(fetchFavorites)
 .favorites-page {
   max-width: 1200px;
   margin: 0 auto;
-}
 
-.card-header {
-  font-weight: 600;
+  .page-header {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    border-radius: 16px;
+    padding: 28px 40px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .header-text {
+      h1 {
+        font-size: 26px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 6px;
+      }
+
+      p {
+        font-size: 14px;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+
+        strong { color: #fbbf24; }
+      }
+    }
+  }
 }
 
 .job-cards {

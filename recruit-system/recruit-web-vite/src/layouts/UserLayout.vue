@@ -35,8 +35,14 @@
           <!-- 通知铃铛 -->
           <NotificationBell v-if="userStore.isLoggedIn" />
 
+          <!-- 未登录时显示登录/注册按钮 -->
+          <template v-if="!userStore.isLoggedIn">
+            <el-button @click="router.push('/login')" size="small">登录</el-button>
+            <el-button type="primary" @click="router.push('/register')" size="small">注册</el-button>
+          </template>
+
           <!-- 用户菜单 -->
-          <el-dropdown @command="handleCommand" class="user-dropdown">
+          <el-dropdown v-if="userStore.isLoggedIn" @command="handleCommand" class="user-dropdown">
             <span class="user-info">
               <el-avatar :size="32" :src="userStore.userInfo?.avatar">
                 <el-icon><User /></el-icon>
@@ -82,8 +88,62 @@
 
     <!-- 页脚 -->
     <footer class="footer">
-      <div class="footer-content">
-        <p></p>
+      <div class="footer-inner">
+        <div class="footer-main">
+          <!-- 品牌信息 -->
+          <div class="footer-brand">
+            <div class="brand-logo">
+              <el-icon size="28" color="#409EFF"><Compass /></el-icon>
+              <span>旅游招聘平台</span>
+            </div>
+            <p class="brand-desc">专注旅游行业人才招聘，连接优质企业与求职者，助力旅游行业发展。</p>
+            <div class="brand-tags">
+              <span class="brand-tag">专业</span>
+              <span class="brand-tag">高效</span>
+              <span class="brand-tag">安全</span>
+            </div>
+          </div>
+
+          <!-- 快速链接 -->
+          <div class="footer-links">
+            <div class="links-group">
+              <h4>求职者</h4>
+              <ul>
+                <li><router-link to="/jobs">浏览职位</router-link></li>
+                <li><router-link to="/companies">发现企业</router-link></li>
+                <li><router-link to="/resume">我的简历</router-link></li>
+                <li><router-link to="/applications">投递记录</router-link></li>
+              </ul>
+            </div>
+            <div class="links-group">
+              <h4>热门分类</h4>
+              <ul>
+                <li><a @click="searchTag('导游')">导游</a></li>
+                <li><a @click="searchTag('酒店经理')">酒店经理</a></li>
+                <li><a @click="searchTag('旅行顾问')">旅行顾问</a></li>
+                <li><a @click="searchTag('空乘')">空乘</a></li>
+              </ul>
+            </div>
+            <div class="links-group">
+              <h4>关于我们</h4>
+              <ul>
+                <li><span>旅游行业招聘专家</span></li>
+                <li><span>服务全国旅游企业</span></li>
+                <li><span>累计服务万名求职者</span></li>
+                <li><span>严格审核企业资质</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分割线 + 版权 -->
+        <div class="footer-bottom">
+          <span>© 2024 旅游招聘平台 版权所有</span>
+          <span class="footer-divider">|</span>
+          <span>专注旅游行业人才服务</span>
+          <span class="footer-divider">|</span>
+          <span>服务热线：400-000-0000</span>
+        </div>
       </div>
     </footer>
   </div>
@@ -116,6 +176,10 @@ const handleSearch = () => {
   if (searchKeyword.value.trim()) {
     router.push({ path: '/jobs', query: { keyword: searchKeyword.value } })
   }
+}
+
+const searchTag = (tag: string) => {
+  router.push({ path: '/jobs', query: { keyword: tag } })
 }
 
 const handleCommand = (command: string) => {
@@ -313,17 +377,112 @@ const handleCommand = (command: string) => {
 }
 
 .footer {
-  background-color: #fff;
-  border-top: 1px solid #e4e7ed;
-  padding: 20px;
+  background: #1a1a2e;
   margin-top: auto;
 
-  .footer-content {
+  .footer-inner {
     max-width: 1200px;
     margin: 0 auto;
-    text-align: center;
-    color: #909399;
-    font-size: 14px;
+    padding: 0 20px;
+  }
+
+  .footer-main {
+    display: flex;
+    gap: 60px;
+    padding: 48px 0 36px;
+
+    .footer-brand {
+      flex: 1.2;
+      min-width: 200px;
+
+      .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+
+        span {
+          font-size: 18px;
+          font-weight: 600;
+          color: #fff;
+        }
+      }
+
+      .brand-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.8;
+        margin: 0 0 16px;
+      }
+
+      .brand-tags {
+        display: flex;
+        gap: 8px;
+
+        .brand-tag {
+          padding: 2px 12px;
+          border: 1px solid rgba(64,158,255,0.5);
+          border-radius: 20px;
+          font-size: 12px;
+          color: #409EFF;
+        }
+      }
+    }
+
+    .footer-links {
+      flex: 2;
+      display: flex;
+      gap: 40px;
+
+      .links-group {
+        flex: 1;
+
+        h4 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+          margin: 0 0 16px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        a, span {
+          font-size: 13px;
+          color: rgba(255,255,255,0.55);
+          text-decoration: none;
+          cursor: pointer;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #409EFF;
+          }
+        }
+      }
+    }
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+
+    .footer-divider {
+      opacity: 0.3;
+    }
   }
 }
 
