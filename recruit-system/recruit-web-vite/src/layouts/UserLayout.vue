@@ -32,6 +32,9 @@
             </el-input>
           </div>
 
+          <!-- 通知铃铛 -->
+          <NotificationBell v-if="userStore.isLoggedIn" />
+
           <!-- 用户菜单 -->
           <el-dropdown @command="handleCommand" class="user-dropdown">
             <span class="user-info">
@@ -51,6 +54,12 @@
                 </el-dropdown-item>
                 <el-dropdown-item command="favorites">
                   <el-icon><Star /></el-icon>我的收藏
+                </el-dropdown-item>
+                <el-dropdown-item command="interviews">
+                  <el-icon><Calendar /></el-icon>我的面试
+                </el-dropdown-item>
+                <el-dropdown-item command="follows">
+                  <el-icon><Collection /></el-icon>关注公司
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>退出登录
@@ -84,7 +93,8 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
-import { Compass, Search, User, ArrowDown, Document, List, Star, SwitchButton } from '@element-plus/icons-vue'
+import { Compass, Search, User, ArrowDown, Document, List, Star, SwitchButton, Calendar, Collection } from '@element-plus/icons-vue'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,6 +128,12 @@ const handleCommand = (command: string) => {
       break
     case 'favorites':
       router.push('/favorites')
+      break
+    case 'interviews':
+      router.push('/interviews')
+      break
+    case 'follows':
+      router.push('/follows')
       break
     case 'logout':
       userStore.logout()

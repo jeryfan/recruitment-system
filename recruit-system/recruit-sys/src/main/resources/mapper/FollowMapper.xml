@@ -13,11 +13,12 @@
     </resultMap>
 
     <select id="getByUserId" resultType="com.recruit.model.CompanyDO">
-        SELECT c.id,c.name,c.foreign_name,c.city,c.mission
+        SELECT c.id,c.name,c.foreign_name,c.city,c.mission,c.description,c.logo,c.state
         FROM company c,follow f
         where f.company_id = c.id
         and f.user_id = #{userId}
         and f.delete_time IS NULL
+        and c.delete_time IS NULL
     </select>
 
     <select id="getByUserIdAndCompanyId" resultMap="BaseResultMap">

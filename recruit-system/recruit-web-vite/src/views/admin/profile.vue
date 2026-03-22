@@ -14,7 +14,7 @@
             <el-form-item label="头像">
               <el-upload
                 class="avatar-uploader"
-                action="/api/upload"
+                action="/recruit/upload/logo"
                 :show-file-list="false"
                 :on-success="handleAvatarSuccess"
               >
@@ -95,12 +95,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores'
+import { updateUserInfo, changePassword as changePasswordApi } from '@/api/user'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 
 const activeTab = ref('info')
@@ -168,13 +170,38 @@ const handleAvatarSuccess = (res: any) => {
   ElMessage.success('头像上传成功')
 }
 
-const saveProfile = () => {
-  ElMessage.success('保存成功')
+const saveProfile = async () => {
+  try {
+    await updateUserInfo({
+      nickname: form.value.nickname,
+      phone: form.value.phone,
+      email: form.value.email,
+      avatar: form.value.avatar
+    })
+    await userStore.fetchUserInfo()
+    ElMessage.success('保存成功')
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
 }
 
-const changePassword = () => {
-  ElMessage.success('密码修改成功，请重新登录')
-  passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+const changePassword = async () => {
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    ElMessage.error('两次输入的密码不一致')
+    return
+  }
+  try {
+    await changePasswordApi({
+      oldPassword: passwordForm.value.oldPassword,
+      newPassword: passwordForm.value.newPassword
+    })
+    ElMessage.success('密码修改成功，请重新登录')
+    passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+    userStore.logout()
+    router.push('/login')
+  } catch (error) {
+    ElMessage.error('密码修改失败，请检查原密码是否正确')
+  }
 }
 
 const saveSettings = () => {

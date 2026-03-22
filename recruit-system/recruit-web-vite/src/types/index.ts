@@ -41,6 +41,8 @@ export interface Job {
   hits: number
   state: number
   createTime: string
+  hrId?: number
+  companyId?: number
 }
 
 export interface Company {

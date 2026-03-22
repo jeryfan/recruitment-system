@@ -322,8 +322,10 @@ const editBasic = async () => {
       if (basicForm.id) {
         await updateResume(basicForm)
       } else {
-        const data = await createResume(basicForm)
-        basicForm.id = data.id
+        await createResume(basicForm)
+        // Fetch to get the actual new resume ID from backend
+        const fresh = await getMyResume()
+        basicForm.id = fresh.id
       }
       ElMessage.success('保存成功')
       fetchResume()

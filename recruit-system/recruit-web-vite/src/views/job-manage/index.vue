@@ -126,25 +126,22 @@
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Job } from '@/types'
-import { getJobList } from '@/api/job'
 import request from '@/utils/request'
 import moment from 'moment'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const loading = ref(false)
-const jobList = ref<Job[]>([])
+const jobList = ref<any[]>([])
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+// HR的公司ID（发布职位时使用）
+const hrCompanyId = ref<number>(0)
 
-const categories = ref([
-  { id: 1, name: '导游服务' },
-  { id: 2, name: '酒店管理' },
-  { id: 3, name: '旅行顾问' },
-  { id: 4, name: '航空服务' },
-  { id: 5, name: '景区运营' },
-])
+const categories = ref<{ id: number; name: string }[]>([])
 
 const form = reactive({
   id: 0,
@@ -163,14 +160,39 @@ const formatTime = (time?: string) => {
   return time ? moment(time).format('YYYY-MM-DD HH:mm') : ''
 }
 
+const fetchCategories = async () => {
+  try {
+    const res = await request.get<any[]>('/recruit/category')
+    categories.value = Array.isArray(res) ? res : (res as any).items || []
+  } catch {
+    // ignore, fallback categories not needed
+  }
+}
+
+const fetchHrCompany = async () => {
+  try {
+    const res = await request.get<any>('/recruit/company/my')
+    hrCompanyId.value = res.id || 0
+  } catch {
+    // HR can still see jobs, just can't create without company
+  }
+}
+
 const fetchJobs = async () => {
+  const hrId = userStore.userInfo?.id
+  if (!hrId) return
   loading.value = true
   try {
-    const res = await request.get('/recruit/position/my', {
-      params: { page: page.value, size: pageSize.value }
+    const res = await request.get<any>(`/recruit/position/page/hr/${hrId}`, {
+      params: { page: page.value - 1, count: pageSize.value }
     })
-    jobList.value = res.list
-    total.value = res.total
+    // backend returns {items, total, page, count}
+    jobList.value = (res.items || []).map((j: any) => ({
+      ...j,
+      salaryMin: j.salary_down ? Math.round(j.salary_down / 1000) : (j.salaryDown || 0),
+      salaryMax: j.salary_up ? Math.round(j.salary_up / 1000) : (j.salaryUp || 0),
+    }))
+    total.value = res.total || 0
   } catch (error) {
     ElMessage.error('获取职位列表失败')
   } finally {
@@ -203,9 +225,18 @@ const showAddDialog = () => {
   dialogVisible.value = true
 }
 
-const editJob = (job: Job) => {
+const editJob = (job: any) => {
   isEdit.value = true
-  Object.assign(form, job)
+  form.id = job.id
+  form.title = job.title
+  form.categoryId = job.category_id || job.categoryId || null
+  form.salaryMin = job.salaryMin || (job.salary_down ? Math.round(job.salary_down / 1000) : 5)
+  form.salaryMax = job.salaryMax || (job.salary_up ? Math.round(job.salary_up / 1000) : 10)
+  form.city = job.city
+  form.experience = job.experience || ''
+  form.education = job.education || ''
+  form.description = job.description || ''
+  form.requirement = job.requirement || ''
   dialogVisible.value = true
 }
 
@@ -214,11 +245,27 @@ const saveJob = async () => {
     ElMessage.warning('请填写完整信息')
     return
   }
+  const hrId = userStore.userInfo?.id
   try {
+    // Backend uses snake_case for position fields
+    const payload = {
+      title: form.title,
+      category_id: form.categoryId,
+      salary_down: form.salaryMin * 1000,
+      salary_up: form.salaryMax * 1000,
+      city: form.city,
+      experience: form.experience,
+      education: form.education,
+      description: form.description,
+      requirement: form.requirement,
+      hr_id: hrId,
+      company_id: hrCompanyId.value,
+      state: 1
+    }
     if (isEdit.value) {
-      await request.put('/recruit/position', form)
+      await request.put(`/recruit/position/${form.id}`, payload)
     } else {
-      await request.post('/recruit/position', form)
+      await request.post('/recruit/position', payload)
     }
     ElMessage.success('保存成功')
     dialogVisible.value = false
@@ -228,10 +275,10 @@ const saveJob = async () => {
   }
 }
 
-const toggleState = async (job: Job) => {
+const toggleState = async (job: any) => {
   try {
     const newState = job.state === 1 ? 0 : 1
-    await request.put(`/recruit/position/state/${job.id}`, { state: newState })
+    await request.put(`/recruit/position/state/${job.id}`, {}, { params: { state: newState } })
     ElMessage.success('操作成功')
     fetchJobs()
   } catch (error) {
@@ -250,7 +297,11 @@ const deleteJob = async (id: number) => {
   }
 }
 
-onMounted(fetchJobs)
+onMounted(() => {
+  fetchCategories()
+  fetchHrCompany()
+  fetchJobs()
+})
 </script>
 
 <style scoped lang="scss">

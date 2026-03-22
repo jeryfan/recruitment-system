@@ -59,9 +59,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { OfficeBuilding } from '@element-plus/icons-vue'
-import { getFavoriteList, cancelFavorite, applyJob } from '@/api/job'
+import { getFavoriteList, cancelFavorite, applyJob, getJobDetail } from '@/api/job'
 import { getMyResume } from '@/api/resume'
+import { useUserStore } from '@/stores/user'
 import moment from 'moment'
+
+const userStore = useUserStore()
 
 const router = useRouter()
 const loading = ref(false)
@@ -112,7 +115,14 @@ const handleApply = async (positionId: number) => {
       router.push('/resume')
       return
     }
-    await applyJob(positionId, resume.id)
+    const userId = userStore.userInfo?.id
+    if (!userId) {
+      ElMessage.warning('请先登录')
+      return
+    }
+    // 获取职位详情以获取 hrId 和 companyId
+    const jobDetail = await getJobDetail(positionId)
+    await applyJob(positionId, resume.id, jobDetail.hrId || 0, jobDetail.companyId || 0, userId)
     ElMessage.success('投递成功')
   } catch (error) {
     ElMessage.error('投递失败')

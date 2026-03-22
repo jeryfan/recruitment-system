@@ -58,6 +58,18 @@ const routes: RouteRecordRaw[] = [
         name: 'Favorites',
         component: () => import('@/views/favorites/index.vue'),
         meta: { title: '我的收藏', requiresAuth: true }
+      },
+      {
+        path: '/interviews',
+        name: 'Interviews',
+        component: () => import('@/views/interviews/index.vue'),
+        meta: { title: '我的面试', requiresAuth: true }
+      },
+      {
+        path: '/follows',
+        name: 'Follows',
+        component: () => import('@/views/follows/index.vue'),
+        meta: { title: '关注公司', requiresAuth: true }
       }
     ]
   },
@@ -92,6 +104,12 @@ const routes: RouteRecordRaw[] = [
         name: 'ResumeManage',
         component: () => import('@/views/resume-manage/index.vue'),
         meta: { title: '简历管理', icon: 'DocumentCopy' }
+      },
+      {
+        path: '/hr/interviews',
+        name: 'HRInterviews',
+        component: () => import('@/views/hr/interviews.vue'),
+        meta: { title: '面试管理', icon: 'ChatDotRound' }
       },
       {
         path: 'profile',

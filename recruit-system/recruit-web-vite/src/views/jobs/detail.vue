@@ -127,7 +127,18 @@ const handleApply = async () => {
       router.push('/resume')
       return
     }
-    await applyJob(job.value!.id, resume.id)
+    const userId = userStore.userInfo?.id
+    if (!userId) {
+      ElMessage.warning('请先登录')
+      return
+    }
+    await applyJob(
+      job.value!.id,
+      resume.id,
+      job.value!.hrId || 0,
+      job.value!.companyId || 0,
+      userId
+    )
     ElMessage.success('投递成功')
   } catch (error) {
     ElMessage.error('投递失败')

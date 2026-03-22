@@ -10,8 +10,6 @@ import io.github.talelin.core.annotation.*;
 import io.github.talelin.core.token.DoubleJWT;
 import io.github.talelin.core.token.Tokens;
 import com.recruit.common.LocalUser;
-import com.recruit.common.util.ObserverGenerate;
-import com.recruit.common.util.SingleUtil;
 import com.recruit.dto.user.ChangePasswordDTO;
 import com.recruit.dto.user.LoginDTO;
 import com.recruit.dto.user.RegisterDTO;
@@ -59,8 +57,6 @@ public class UserController {
     @PostMapping("/register")
     public CreatedVO register(@RequestBody @Validated RegisterDTO validator) {
         userService.createUser(validator);
-        // 用户注册成功，创建一个该用户对应的观察者类
-        ObserverGenerate.generate(validator.getUsername());
         return new CreatedVO(11);
     }
 
@@ -80,8 +76,6 @@ public class UserController {
         if (!valid) {
             throw new ParameterException(10031);
         }
-        // 保存当前登录用户到SingleUtil工具类中
-        SingleUtil.userDO = user;
         return jwt.generateTokens(user.getId());
     }
 
@@ -96,11 +90,31 @@ public class UserController {
     }
 
     /**
+     * 更新用户信息（/info 路径别名，兼容前端调用）
+     */
+    @PutMapping("/info")
+    @LoginRequired
+    public UpdatedVO updateInfo(@RequestBody @Validated UpdateInfoDTO validator) {
+        userService.updateUserInfo(validator);
+        return new UpdatedVO(6);
+    }
+
+    /**
      * 修改密码
      */
     @PutMapping("/change_password")
     @LoginRequired
     public UpdatedVO updatePassword(@RequestBody @Validated ChangePasswordDTO validator) {
+        userService.changeUserPassword(validator);
+        return new UpdatedVO(4);
+    }
+
+    /**
+     * 修改密码（/password 路径别名，兼容前端调用）
+     */
+    @PutMapping("/password")
+    @LoginRequired
+    public UpdatedVO updatePasswordAlias(@RequestBody @Validated ChangePasswordDTO validator) {
         userService.changeUserPassword(validator);
         return new UpdatedVO(4);
     }
@@ -138,6 +152,7 @@ public class UserController {
         LambdaQueryWrapper<UserGroupDO> queryWrapper=new QueryWrapper<UserGroupDO>().lambda();
         queryWrapper.eq(UserGroupDO::getUserId,id);
         UserGroupDO userGroupDO = userGroupMapper.selectOne(queryWrapper);
+        if (userGroupDO == null) return 0;
         return userGroupDO.getGroupId();
     }
 

@@ -2,14 +2,17 @@ package com.recruit.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.recruit.common.LocalUser;
+import com.recruit.model.UserDO;
+import com.recruit.service.HrCompanyService;
 import io.github.talelin.core.annotation.GroupRequired;
+import io.github.talelin.core.annotation.LoginRequired;
 import io.github.talelin.core.annotation.Logger;
 import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
 import com.recruit.common.mybatis.Page;
 import io.github.talelin.autoconfigure.exception.NotFoundException;
 import com.recruit.common.util.PageUtil;
-import com.recruit.common.util.SubjectGenerate;
 import com.recruit.dto.company.CreateOrUpdateCompanyDTO;
 import com.recruit.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,23 @@ public class CompanyController {
     @Autowired
     private CompanyService companyService;
 
+    @Autowired
+    private HrCompanyService hrCompanyService;
+
+    /**
+     * 获取当前登录HR的公司信息
+     */
+    @GetMapping("/my")
+    @LoginRequired
+    public CompanyDO getMyCompany() {
+        UserDO user = LocalUser.getLocalUser();
+        CompanyDO company = hrCompanyService.getCompany(user.getId());
+        if (company == null) {
+            throw new NotFoundException(30000);
+        }
+        return company;
+    }
+
     /**
      * 新增公司
      * @return
@@ -47,8 +67,6 @@ public class CompanyController {
     @PostMapping("")
     public CreatedVO create(@RequestBody @Validated CreateOrUpdateCompanyDTO validator) {
         companyService.createCompany(validator);
-        // 新增企业成功，创建一个该企业对应的被观察者类
-        SubjectGenerate.generate(validator.getForeignName(), validator.getName());
         return new CreatedVO(3200);
     }
 

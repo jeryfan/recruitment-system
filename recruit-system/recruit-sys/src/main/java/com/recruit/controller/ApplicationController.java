@@ -136,7 +136,7 @@ public class ApplicationController {
             @RequestParam(name = "page", required = false, defaultValue = "0")
             @Min(value = 0, message = "{page.number.min}") Integer page,
             @PathVariable(value = "hrID") @Positive(message = "{id.positive}") Integer hrID,
-            @RequestParam Integer state
+            @RequestParam(required = false) Integer state
     ) {
         return applicationService.getByHrId(count, page, hrID, state);
     }

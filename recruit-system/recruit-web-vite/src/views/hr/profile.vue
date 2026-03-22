@@ -13,7 +13,7 @@
             <el-form-item label="头像">
               <el-upload
                 class="avatar-uploader"
-                action="/api/upload"
+                action="/recruit/upload/logo"
                 :show-file-list="false"
                 :on-success="handleAvatarSuccess"
               >
@@ -86,6 +86,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores'
+import { updateUserInfo, changePassword as changePasswordApi } from '@/api/user'
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -152,17 +153,50 @@ onMounted(() => {
 })
 
 const handleAvatarSuccess = (res: any) => {
-  form.value.avatar = res.url
+  form.value.avatar = res.url || res.path || ''
   ElMessage.success('头像上传成功')
 }
 
-const saveProfile = () => {
-  ElMessage.success('保存成功')
+const saveProfile = async () => {
+  try {
+    await updateUserInfo({
+      nickname: form.value.nickname,
+      avatar: form.value.avatar,
+      email: form.value.email,
+      phone: form.value.phone
+    } as any)
+    // 更新 store 中的用户信息
+    if (userStore.userInfo) {
+      userStore.userInfo.nickname = form.value.nickname
+      userStore.userInfo.avatar = form.value.avatar
+      userStore.userInfo.email = form.value.email
+    }
+    ElMessage.success('保存成功')
+  } catch {
+    ElMessage.error('保存失败，请重试')
+  }
 }
 
-const changePassword = () => {
-  ElMessage.success('密码修改成功，请重新登录')
-  passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+const changePassword = async () => {
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    ElMessage.error('两次输入的密码不一致')
+    return
+  }
+  try {
+    await changePasswordApi({
+      oldPassword: passwordForm.value.oldPassword,
+      newPassword: passwordForm.value.newPassword,
+      confirmPassword: passwordForm.value.confirmPassword
+    } as any)
+    ElMessage.success('密码修改成功，请重新登录')
+    passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+    setTimeout(() => {
+      userStore.logout()
+      window.location.href = '/login'
+    }, 1500)
+  } catch {
+    ElMessage.error('密码修改失败，请检查原密码是否正确')
+  }
 }
 </script>
 

@@ -41,8 +41,5 @@
                   LEFT JOIN position p ON  i.position_id = p.id
                   LEFT JOIN company c on p.company_id=c.id
         WHERE i.delete_time is null and i.user_id = #{userId}
-        <if test="#{}">
-
-        </if>
     </select>
 </mapper>

@@ -15,6 +15,9 @@ interface BackendJob {
   id: number
   title: string
   requirement: string
+  description?: string
+  experience?: string
+  education?: string
   quantity: number
   city: string
   salary_up: number
@@ -57,14 +60,16 @@ function convertBackendJob(backendJob: BackendJob): Job {
     salaryMin: backendJob.salary_down / 1000, // 转换为K
     salaryMax: backendJob.salary_up / 1000,
     city: backendJob.city,
-    experience: '', // 后端暂无此字段
-    education: '', // 后端暂无此字段
-    description: backendJob.company_desc,
+    experience: backendJob.experience || '',
+    education: backendJob.education || '',
+    description: backendJob.description || backendJob.company_desc || '',
     requirement: backendJob.requirement,
     tags: backendJob.category_name ? [backendJob.category_name] : [],
     hits: backendJob.hits,
     state: backendJob.state,
-    createTime: backendJob.release_date
+    createTime: backendJob.release_date,
+    hrId: backendJob.hr_id,
+    companyId: backendJob.company_id
   }
 }
 
@@ -78,8 +83,8 @@ function convertBackendFavoriteJob(backendJob: BackendFavoriteJob): Job {
     salaryMin: backendJob.salary_down ? backendJob.salary_down / 1000 : 0, // 转换为K
     salaryMax: backendJob.salary_up ? backendJob.salary_up / 1000 : 0,
     city: backendJob.city,
-    experience: '', // 后端暂无此字段
-    education: '', // 后端暂无此字段
+    experience: backendJob.experience || '',
+    education: backendJob.education || '',
     description: '',
     requirement: '',
     tags: [],
@@ -130,15 +135,48 @@ export function getHotJobs() {
 }
 
 export function getJobDetail(id: number) {
-  return request.get<Job>(`/recruit/position/${id}`)
+  return request.get<any>(`/recruit/position/${id}`).then((data: any) => {
+    // 后端返回的是 PositionResultDO（下划线命名），转换为前端格式
+    const job: Job = {
+      id: data.id,
+      title: data.title,
+      companyName: data.company_name || data.CompanyName || '',
+      companyLogo: data.logo || undefined,
+      salaryMin: data.salary_down ? data.salary_down / 1000 : 0,
+      salaryMax: data.salary_up ? data.salary_up / 1000 : 0,
+      city: data.city || '',
+      experience: data.experience || '',
+      education: data.education || '',
+      description: data.description || data.company_desc || data.CompanyDesc || '',
+      requirement: data.requirement || '',
+      tags: data.category_name ? [data.category_name] : (data.CategoryName ? [data.CategoryName] : []),
+      hits: data.hits || 0,
+      state: data.state || 0,
+      createTime: data.release_date || '',
+      hrId: data.hr_id || data.hrId,
+      companyId: data.company_id || data.companyId
+    }
+    return job
+  })
 }
 
-export function applyJob(positionId: number, resumeId: number) {
-  return request.post('/recruit/application', { positionId, resumeId })
+export function applyJob(positionId: number, resumeId: number, hrId: number, companyId: number, userId: number) {
+  return request.post('/recruit/application', {
+    position_id: positionId,
+    resume_id: resumeId,
+    hr_id: hrId,
+    company_id: companyId,
+    user_id: userId
+  })
 }
 
 export function favoriteJob(positionId: number) {
-  return request.post('/recruit/favor', { positionId })
+  const userStore = useUserStore()
+  const userId = userStore.userInfo?.id
+  if (!userId) {
+    return Promise.reject(new Error('用户未登录'))
+  }
+  return request.post('/recruit/favor', { user_id: userId, position_id: positionId })
 }
 
 export function cancelFavorite(positionId: number) {

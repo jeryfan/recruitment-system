@@ -28,6 +28,21 @@ public class PositionDO extends BaseModel {
     private String requirement;
 
     /**
+     * 职位描述
+     */
+    private String description;
+
+    /**
+     * 经验要求
+     */
+    private String experience;
+
+    /**
+     * 学历要求
+     */
+    private String education;
+
+    /**
      * 招聘人数
      */
     private Integer quantity;

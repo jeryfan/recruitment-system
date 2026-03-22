@@ -40,7 +40,7 @@ public class InterviewController {
             @RequestParam(name = "page", required = false, defaultValue = "0")
             @Min(value = 0, message = "{page.number.min}") Integer page,
             @PathVariable(value = "hrID") @Positive(message = "{id.positive}") Integer hrID,
-            @RequestParam Integer state
+            @RequestParam(required = false) Integer state
     ) {
         return interviewService.getByHrId(count, page, hrID);
     }
@@ -55,7 +55,7 @@ public class InterviewController {
             @RequestParam(name = "page", required = false, defaultValue = "0")
             @Min(value = 0, message = "{page.number.min}") Integer page,
             @PathVariable(value = "userId") @Positive(message = "{id.positive}") Integer userId,
-            @RequestParam Integer state
+            @RequestParam(required = false) Integer state
     ) {
         return interviewService.getByUserId(count, page, userId);
     }

@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.util.List;
 
 @RestController
-@RequestMapping("/recruit/file")
 public class FileController {
 
     @Autowired
@@ -23,14 +22,23 @@ public class FileController {
 
     /**
      * 文件上传
-     *
-     * @param multipartHttpServletRequest 携带文件的 request
-     * @return 文件信息
      */
-    @PostMapping
+    @PostMapping("/recruit/file")
     @LoginRequired
     @Logger(template = "文件上传")
     public List<FileBO> upload(MultipartHttpServletRequest multipartHttpServletRequest) {
+        MultiValueMap<String, MultipartFile> fileMap =
+                multipartHttpServletRequest.getMultiFileMap();
+        return fileService.upload(fileMap);
+    }
+
+    /**
+     * Logo/图片上传（兼容前端 /recruit/upload/logo 调用）
+     */
+    @PostMapping("/recruit/upload/logo")
+    @LoginRequired
+    @Logger(template = "Logo上传")
+    public List<FileBO> uploadLogo(MultipartHttpServletRequest multipartHttpServletRequest) {
         MultiValueMap<String, MultipartFile> fileMap =
                 multipartHttpServletRequest.getMultiFileMap();
         return fileService.upload(fileMap);

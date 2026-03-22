@@ -9,8 +9,8 @@ export function createCompany(data: Partial<Company>) {
   return request.post<Company>('/recruit/company', data)
 }
 
-export function updateCompany(data: Partial<Company>) {
-  return request.put<Company>('/recruit/company', data)
+export function updateCompany(id: number, data: Partial<Company>) {
+  return request.put<Company>(`/recruit/company/${id}`, data)
 }
 
 export function uploadLogo(file: File) {
@@ -39,12 +39,14 @@ function convertPageResponse<T>(res: BackendPageResponse<T>): { list: T[]; total
   }
 }
 
-export function getCompanyList(params: { page?: number; size?: number; state?: number }) {
-  const { page = 1, size = 12, state = 1 } = params
+export function getCompanyList(params: { page?: number; size?: number; state?: number; keyword?: string }) {
+  const { page = 1, size = 12, state = 1, keyword } = params
   // 后端 page 从 0 开始，前端从 1 开始
   const pageParam = page - 1
+  const queryParams: any = { page: pageParam, count: size }
+  if (keyword) queryParams.keyword = keyword
   return request.get<BackendPageResponse<Company>>(`/recruit/company/page/${state}`, {
-    params: { page: pageParam, count: size }
+    params: queryParams
   }).then(convertPageResponse)
 }
 

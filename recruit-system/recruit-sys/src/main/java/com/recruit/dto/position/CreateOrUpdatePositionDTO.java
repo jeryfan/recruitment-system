@@ -19,6 +19,12 @@ public class CreateOrUpdatePositionDTO {
     @NotEmpty(message = "{position.requirement.not-empty}")
     private String requirement;
 
+    private String description;
+
+    private String experience;
+
+    private String education;
+
     private Integer quantity;
 
     private String city;

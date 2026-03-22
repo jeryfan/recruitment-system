@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +39,7 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, NotifyDO> imple
     @Override
     public List<NotifyDO> get(String userName, String isRead) {
         UserDO userDO = userService.getUserByNickname(userName);
+        if (userDO == null) return Collections.emptyList();
         QueryWrapper<NotifyDO> wrapper = new QueryWrapper<>();
         wrapper.eq("user_name", userDO.getUsername()).eq("is_read", isRead);
         return notifyMapper.selectList(wrapper);
@@ -46,6 +48,7 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, NotifyDO> imple
     @Override
     public List<NotifyDO> getAll(String userName) {
         UserDO userDO = userService.getUserByNickname(userName);
+        if (userDO == null) return Collections.emptyList();
         QueryWrapper<NotifyDO> wrapper = new QueryWrapper<>();
         wrapper.eq("user_name", userDO.getUsername());
         return notifyMapper.selectList(wrapper);

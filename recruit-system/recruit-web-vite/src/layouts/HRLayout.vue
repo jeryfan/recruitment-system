@@ -76,6 +76,7 @@ const menuItems = [
   { path: '/company/manage', title: '企业管理', icon: 'OfficeBuilding' },
   { path: '/job/manage', title: '职位管理', icon: 'Collection' },
   { path: '/resumes', title: '简历管理', icon: 'DocumentCopy' },
+  { path: '/hr/interviews', title: '面试管理', icon: 'ChatDotRound' },
 ]
 
 const handleCommand = (command: string) => {

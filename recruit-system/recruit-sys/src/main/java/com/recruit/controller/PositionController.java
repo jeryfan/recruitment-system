@@ -9,13 +9,11 @@ import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
 import com.recruit.common.mybatis.Page;
 import com.recruit.common.util.PageUtil;
-import com.recruit.common.util.SingleUtil;
 import com.recruit.dto.position.CreateOrUpdatePositionDTO;
 import com.recruit.model.CompanyDO;
-import com.recruit.model.NotifyDO;
 import com.recruit.model.result.PositionResultDO;
+import com.recruit.service.CompanyNotifyService;
 import com.recruit.service.CompanyService;
-import com.recruit.service.NotifyService;
 import com.recruit.service.PositionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -29,9 +27,7 @@ import com.recruit.vo.UpdatedVO;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Positive;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
 * @author Min
@@ -49,7 +45,7 @@ public class PositionController {
     private CompanyService companyService;
 
     @Autowired
-    private NotifyService notifyService;
+    private CompanyNotifyService companyNotifyService;
 
     /**
      * 添加职位
@@ -61,28 +57,16 @@ public class PositionController {
     @PermissionMeta(value = "发布职位")
     public CreatedVO create(@RequestBody @Validated CreateOrUpdatePositionDTO validator) {
         positionService.createPosition(validator);
-        // 职位发布成功后，通知对应的观察者
-        // 1. 获取到发布的职位所属的公司外文名
-        CompanyDO company = companyService.getById(validator.getCompanyId());
-        String foreignName = company.getForeignName();
-        // 判断全局map中是否存在对应的被观察者类
-        if (SingleUtil.map.containsKey(foreignName)) {
-            // 2. 通知所有观察者发布职位了
-            SingleUtil.map.get(foreignName).setState(1);
-            SingleUtil.map.get(foreignName).setPositionName(validator.getTitle());
-            SingleUtil.map.get(foreignName).notifyObservers();
-            // 3. 将工具类SingleUtil中的全局messageMap中的数据一一存放到通知表notify中
-            Set<String> set = SingleUtil.messageMap.keySet();
-            Iterator<String> iterator = set.iterator();
-            while (iterator.hasNext()) {
-                String key = iterator.next();
-                NotifyDO notifyDO = new NotifyDO();
-                notifyDO.setUserName(key);
-                notifyDO.setContent(SingleUtil.messageMap.get(key));
-                notifyService.create(notifyDO);
+        // 职位发布成功后，通过数据库 follow 表通知关注该公司的所有求职者
+        try {
+            CompanyDO company = companyService.getById(validator.getCompanyId());
+            if (company != null) {
+                companyNotifyService.notifyFollowersOnPositionPublish(
+                    validator.getCompanyId(), company.getName(), validator.getTitle()
+                );
             }
-            // 4. 清空全局messageMap中的数据
-            SingleUtil.messageMap.clear();
+        } catch (Exception e) {
+            // 通知失败不影响主业务
         }
         return new CreatedVO(2100);
     }
@@ -160,28 +144,16 @@ public class PositionController {
             throw new NotFoundException(41000);
         }
         positionService.removeById(id);
-        // 职位下架成功后，通知对应的观察者
-        // 1. 获取到下架的职位所属的公司外文名
-        CompanyDO company = companyService.getById(positionDO.getCompanyId());
-        String foreignName = company.getForeignName();
-        // 判断全局map中是否存在对应的被观察者类
-        if (SingleUtil.map.containsKey(foreignName)) {
-            // 2. 通知所有观察者下架职位了
-            SingleUtil.map.get(foreignName).setState(0);
-            SingleUtil.map.get(foreignName).setPositionName(positionDO.getTitle());
-            SingleUtil.map.get(foreignName).notifyObservers();
-            // 3. 将工具类SingleUtil中的全局messageMap中的数据一一存放到通知表notify中
-            Set<String> set = SingleUtil.messageMap.keySet();
-            Iterator<String> iterator = set.iterator();
-            while (iterator.hasNext()) {
-                String key = iterator.next();
-                NotifyDO notifyDO = new NotifyDO();
-                notifyDO.setUserName(key);
-                notifyDO.setContent(SingleUtil.messageMap.get(key));
-                notifyService.create(notifyDO);
+        // 职位下架成功后，通过数据库 follow 表通知关注该公司的所有求职者
+        try {
+            CompanyDO company = companyService.getById(positionDO.getCompanyId());
+            if (company != null) {
+                companyNotifyService.notifyFollowersOnPositionRemove(
+                    positionDO.getCompanyId(), company.getName(), positionDO.getTitle()
+                );
             }
-            // 4. 清空全局messageMap中的数据
-            SingleUtil.messageMap.clear();
+        } catch (Exception e) {
+            // 通知失败不影响主业务
         }
         return new DeletedVO(2000);
     }

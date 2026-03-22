@@ -1,12 +1,21 @@
 package com.recruit.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.recruit.dto.category.CreateOrUpdateCategoryDTO;
+import com.recruit.model.CategoryDO;
+import com.recruit.model.CompanyDO;
+import com.recruit.service.CategoryService;
+import com.recruit.service.CompanyService;
 import com.recruit.service.PermissionService;
+import com.recruit.service.PositionService;
+import io.github.talelin.autoconfigure.exception.NotFoundException;
 import io.github.talelin.core.annotation.AdminRequired;
 import io.github.talelin.core.annotation.Logger;
 import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
 import com.recruit.bo.GroupPermissionBO;
+import com.recruit.common.mybatis.Page;
 import com.recruit.common.util.PageUtil;
 import com.recruit.dto.admin.DispatchPermissionDTO;
 import com.recruit.dto.admin.DispatchPermissionsDTO;
@@ -20,6 +29,7 @@ import com.recruit.model.PermissionDO;
 import com.recruit.model.UserDO;
 import com.recruit.service.AdminService;
 import com.recruit.service.GroupService;
+import com.recruit.service.UserService;
 import com.recruit.vo.CreatedVO;
 import com.recruit.vo.DeletedVO;
 import com.recruit.vo.PageResponseVO;
@@ -40,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Positive;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,6 +66,18 @@ public class AdminController {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private CompanyService companyService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private PositionService positionService;
 
     @GetMapping("/permission")
     @PermissionMeta(value = "查询所有可分配的权限")
@@ -176,6 +199,157 @@ public class AdminController {
     public DeletedVO removePermissions(@RequestBody @Validated RemovePermissionsDTO validator) {
         adminService.removePermissions(validator);
         return new DeletedVO(10);
+    }
+
+    // ========== 用户状态管理 ==========
+
+    /**
+     * 切换用户激活状态（启用/禁用）
+     */
+    @PutMapping("/users/{id}/state")
+    @PermissionMeta(value = "切换用户状态")
+    public UpdatedVO updateUserState(
+            @PathVariable @Positive(message = "{id.positive}") Integer id,
+            @RequestBody Map<String, Integer> body) {
+        UserDO user = userService.getById(id);
+        if (user == null) {
+            throw new NotFoundException(10021);
+        }
+        Integer state = body.get("state");
+        if (state == null) {
+            state = 0;
+        }
+        UserDO update = new UserDO();
+        update.setId(id);
+        update.setState(state);
+        userService.updateById(update);
+        return new UpdatedVO(6);
+    }
+
+    // ========== 公司管理代理端点 ==========
+
+    /**
+     * 管理员分页查询公司列表
+     */
+    @GetMapping("/companies")
+    @PermissionMeta(value = "管理员查询公司列表")
+    public PageResponseVO<CompanyDO> getCompanies(
+            @RequestParam(name = "count", required = false, defaultValue = "10")
+            @Min(value = 1, message = "{page.count.min}")
+            @Max(value = 30, message = "{page.count.max}") Integer count,
+            @RequestParam(name = "page", required = false, defaultValue = "0")
+            @Min(value = 0, message = "{page.number.min}") Integer page,
+            @RequestParam(name = "state", required = false) Integer state) {
+        Page<CompanyDO> pager = new Page<>(page, count);
+        QueryWrapper<CompanyDO> wrapper = new QueryWrapper<>();
+        if (state != null) {
+            wrapper.eq("state", state);
+        }
+        IPage<CompanyDO> paging = companyService.getBaseMapper().selectPage(pager, wrapper);
+        return PageUtil.build(paging);
+    }
+
+    /**
+     * 管理员审核公司（通过/拒绝）
+     */
+    @PutMapping("/companies/{id}/audit")
+    @PermissionMeta(value = "管理员审核公司")
+    public UpdatedVO auditCompany(
+            @PathVariable @Positive(message = "{id.positive}") Integer id,
+            @RequestBody Map<String, Integer> body) {
+        CompanyDO company = companyService.getById(id);
+        if (company == null) {
+            throw new NotFoundException(30000);
+        }
+        Integer state = body.get("state");
+        if (state == null) {
+            throw new NotFoundException(30001);
+        }
+        companyService.updateState(id, state);
+        return new UpdatedVO(3100);
+    }
+
+    // ========== 分类管理代理端点 ==========
+
+    /**
+     * 管理员获取所有分类
+     */
+    @GetMapping("/categories")
+    @PermissionMeta(value = "管理员查询分类列表")
+    public List<CategoryDO> getCategories() {
+        return categoryService.getAll();
+    }
+
+    /**
+     * 管理员新增分类
+     */
+    @PostMapping("/categories")
+    @PermissionMeta(value = "管理员新增分类")
+    public CreatedVO createCategory(@RequestBody @Validated CreateOrUpdateCategoryDTO validator) {
+        categoryService.createCategory(validator);
+        return new CreatedVO(5000);
+    }
+
+    /**
+     * 管理员更新分类
+     */
+    @PutMapping("/categories/{id}")
+    @PermissionMeta(value = "管理员更新分类")
+    public UpdatedVO updateCategory(
+            @PathVariable @Positive(message = "{id.positive}") Integer id,
+            @RequestBody @Validated CreateOrUpdateCategoryDTO validator) {
+        CategoryDO categoryDO = categoryService.getById(id);
+        if (categoryDO == null) {
+            throw new NotFoundException(50000);
+        }
+        categoryService.updateCategory(categoryDO, validator);
+        return new UpdatedVO(5100);
+    }
+
+    /**
+     * 管理员删除分类
+     */
+    @DeleteMapping("/categories/{id}")
+    @PermissionMeta(value = "管理员删除分类")
+    public DeletedVO deleteCategory(
+            @PathVariable @Positive(message = "{id.positive}") Integer id) {
+        CategoryDO categoryDO = categoryService.getById(id);
+        if (categoryDO == null) {
+            throw new NotFoundException(50000);
+        }
+        categoryService.deleteById(id);
+        return new DeletedVO(5200);
+    }
+
+    // ========== 数据统计 ==========
+
+    /**
+     * 管理员获取系统数据统计概览
+     */
+    @GetMapping("/stats")
+    @PermissionMeta(value = "系统统计数据")
+    public Map<String, Long> getStats() {
+        Map<String, Long> stats = new HashMap<>();
+        // 用户总数（排除root用户）
+        Integer rootId = userService.getRootUserId();
+        QueryWrapper<UserDO> userWrapper = new QueryWrapper<>();
+        userWrapper.lambda().ne(UserDO::getId, rootId);
+        stats.put("totalUsers", (long) userService.count(userWrapper));
+        // 公司总数
+        stats.put("totalCompanies", (long) companyService.count());
+        // 待审核公司数
+        QueryWrapper<CompanyDO> pendingWrapper = new QueryWrapper<>();
+        pendingWrapper.eq("state", 0);
+        stats.put("pendingCompanies", (long) companyService.count(pendingWrapper));
+        // 已通过公司数
+        QueryWrapper<CompanyDO> approvedWrapper = new QueryWrapper<>();
+        approvedWrapper.eq("state", 1);
+        stats.put("approvedCompanies", (long) companyService.count(approvedWrapper));
+        // 职位总数
+        stats.put("totalPositions", (long) positionService.count());
+        // 分类总数
+        stats.put("totalCategories", (long) categoryService.count());
+        return stats;
     }
 
 }

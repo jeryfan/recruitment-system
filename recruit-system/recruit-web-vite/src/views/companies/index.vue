@@ -124,7 +124,8 @@ const fetchCompanies = async () => {
     const res = await getCompanyList({
       page: page.value,
       size: pageSize.value,
-      state: 1
+      state: 1,
+      keyword: searchKeyword.value || undefined
     })
     companyList.value = res.list
     total.value = res.total

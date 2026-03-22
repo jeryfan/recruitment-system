@@ -162,7 +162,8 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { Job } from '@/types'
-import { getJobList } from '@/api/job'
+import { getJobList, applyJob as applyJobApi, getJobDetail } from '@/api/job'
+import { getMyResume } from '@/api/resume'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -244,9 +245,27 @@ const applyJob = async (job: Job) => {
     return
   }
   applying.value = job.id
-  // 投递逻辑
-  ElMessage.success('投递成功')
-  applying.value = null
+  try {
+    const resume = await getMyResume()
+    if (!resume?.id) {
+      ElMessage.warning('请先完善简历')
+      router.push('/resume')
+      return
+    }
+    const userId = userStore.userInfo?.id
+    if (!userId) {
+      ElMessage.warning('请先登录')
+      return
+    }
+    // 获取职位详情以确保 hrId 和 companyId 的准确性
+    const jobDetail = await getJobDetail(job.id)
+    await applyJobApi(job.id, resume.id, jobDetail.hrId || 0, jobDetail.companyId || 0, userId)
+    ElMessage.success('投递成功')
+  } catch (error) {
+    ElMessage.error('投递失败，请稍后重试')
+  } finally {
+    applying.value = null
+  }
 }
 
 // 格式化数字

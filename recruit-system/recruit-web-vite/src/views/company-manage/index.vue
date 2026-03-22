@@ -149,7 +149,7 @@ const saveCompany = async () => {
   }
   try {
     if (form.id) {
-      await updateCompany(form)
+      await updateCompany(form.id, form)
     } else {
       await createCompany(form)
     }

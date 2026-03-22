@@ -10,10 +10,9 @@
       <div class="filter-bar">
         <el-select v-model="filterState" placeholder="筛选状态" clearable @change="handleFilter">
           <el-option label="全部" value="" />
-          <el-option label="待查看" :value="0" />
-          <el-option label="已查看" :value="1" />
-          <el-option label="感兴趣" :value="2" />
-          <el-option label="不合适" :value="3" />
+          <el-option label="待处理" :value="0" />
+          <el-option label="感兴趣" :value="1" />
+          <el-option label="不合适" :value="2" />
         </el-select>
       </div>
 
@@ -76,8 +75,8 @@
       </div>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button type="danger" @click="updateState(3)">标记不合适</el-button>
-        <el-button type="success" @click="updateState(2)">标记感兴趣</el-button>
+        <el-button type="danger" @click="updateState(2)">标记不合适</el-button>
+        <el-button type="success" @click="updateState(1)">标记感兴趣</el-button>
       </template>
     </el-dialog>
   </div>
@@ -87,23 +86,24 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User } from '@element-plus/icons-vue'
-import request from '@/utils/request'
 import moment from 'moment'
+import { useUserStore } from '@/stores/user'
+import { getHrApplications, updateApplicationState } from '@/api/interview'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const applicationList = ref<any[]>([])
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const filterState = ref('')
+const filterState = ref<number | ''>('')
 const detailVisible = ref(false)
 const selectedResume = ref<any>(null)
 
 const statusMap: Record<number, { text: string; type: 'info' | 'success' | 'warning' | 'danger' }> = {
-  0: { text: '待查看', type: 'info' },
-  1: { text: '已查看', type: 'warning' },
-  2: { text: '感兴趣', type: 'success' },
-  3: { text: '不合适', type: 'danger' }
+  0: { text: '待处理', type: 'info' },
+  1: { text: '感兴趣', type: 'success' },
+  2: { text: '不合适', type: 'danger' }
 }
 
 const getStatusText = (state: number) => statusMap[state]?.text || '未知'
@@ -114,12 +114,17 @@ const fetchApplications = async () => {
   loading.value = true
   try {
     const params: any = { page: page.value, size: pageSize.value }
-    if (filterState.value !== '') {
-      params.state = filterState.value
-    }
-    const res = await request.get('/recruit/application/company', { params })
-    applicationList.value = res.list
-    total.value = res.total
+    if (filterState.value !== '') params.state = filterState.value
+    const res = await getHrApplications(params) as any
+    applicationList.value = (res.items || []).map((item: any) => ({
+      ...item,
+      resumeRealName: item.nickname || item.name || '未知',
+      resumePhone: item.tel,
+      resumeEmail: item.email,
+      positionTitle: item.title,
+      createTime: item.apply_time || item.create_time
+    }))
+    total.value = res.total || 0
   } catch (error) {
     ElMessage.error('获取简历列表失败')
   } finally {
@@ -145,20 +150,12 @@ const handlePageChange = (val: number) => {
 const viewResume = async (item: any) => {
   selectedResume.value = item
   detailVisible.value = true
-  if (item.state === 0) {
-    try {
-      await request.put(`/recruit/application/state/${item.id}`, { state: 1 })
-      fetchApplications()
-    } catch (error) {
-      // ignore
-    }
-  }
 }
 
 const updateState = async (state: number) => {
   if (!selectedResume.value) return
   try {
-    await request.put(`/recruit/application/state/${selectedResume.value.id}`, { state })
+    await updateApplicationState(selectedResume.value.id, state)
     ElMessage.success('操作成功')
     detailVisible.value = false
     fetchApplications()

@@ -53,6 +53,9 @@ public class PositionServiceImpl extends ServiceImpl<PositionMapper, PositionDO>
         PositionDO positionDO = new PositionDO();
         positionDO.setTitle(validator.getTitle());
         positionDO.setRequirement(validator.getRequirement());
+        positionDO.setDescription(validator.getDescription());
+        positionDO.setExperience(validator.getExperience());
+        positionDO.setEducation(validator.getEducation());
         positionDO.setQuantity(validator.getQuantity());
         positionDO.setCity(validator.getCity());
         positionDO.setSalaryUp(validator.getSalaryUp());
@@ -67,6 +70,9 @@ public class PositionServiceImpl extends ServiceImpl<PositionMapper, PositionDO>
     public boolean updatePosition(PositionDO positionDO, CreateOrUpdatePositionDTO validator) {
         positionDO.setTitle(validator.getTitle());
         positionDO.setRequirement(validator.getRequirement());
+        positionDO.setDescription(validator.getDescription());
+        positionDO.setExperience(validator.getExperience());
+        positionDO.setEducation(validator.getEducation());
         positionDO.setQuantity(validator.getQuantity());
         positionDO.setCity(validator.getCity());
         positionDO.setSalaryUp(validator.getSalaryUp());

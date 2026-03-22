@@ -103,6 +103,9 @@ public class ResumeController {
     public ResumeVO get(@PathVariable(value = "id") @Positive(message = "{id.positive}") Integer id) {
 
         ResumeDO resume = resumeService.getById(id);
+        if (resume == null) {
+            throw new NotFoundException(20020);
+        }
         ResumeVO resumeVO = resumeService.getByUserId(resume.getUserId());
         if (resumeVO == null) {
             throw new NotFoundException(20020);

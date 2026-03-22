@@ -48,4 +48,9 @@ public class UserDO extends BaseModel implements Serializable {
      */
     private String tel;
 
+    /**
+     * 用户状态：1-正常，0-禁用
+     */
+    private Integer state;
+
 }

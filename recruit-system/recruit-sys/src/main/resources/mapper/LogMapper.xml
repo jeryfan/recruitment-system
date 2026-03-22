@@ -32,7 +32,7 @@
     <select id="searchLogsByUsernameAndKeywordAndRange" resultType="com.recruit.model.LogDO">
         SELECT l.message, l.user_id,l.username,l.status_code,l.method,l.path,l.permission,l.create_time FROM log l
         WHERE l.delete_time IS NULL
-        <if test="name != ''">
+        <if test="name != null and name != ''">
             AND l.username=#{name}
         </if>
         <if test="start !=null and end !=null">

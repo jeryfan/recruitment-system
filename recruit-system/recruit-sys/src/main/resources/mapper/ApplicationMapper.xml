@@ -31,9 +31,9 @@
         <result column="email" property="email" />
         <result column="tel" property="tel" />
         <result column="title" property="title" />
-        <result column="positionCity" property="position_city" />
-        <result column="salaryDown" property="salary_down" />
-        <result column="salaryUp" property="salary_up" />
+        <result column="position_city" property="positionCity" />
+        <result column="salary_down" property="salaryDown" />
+        <result column="salary_up" property="salaryUp" />
         <result column="name" property="name" />
     </resultMap>
 
@@ -44,7 +44,8 @@
                  LEFT JOIN  resume r on a.resume_id = r.id
                  LEFT JOIN  position p on a.position_id = p.id
                  LEFT JOIN  company c on  p.company_id=c.id
-        where a.delete_time is null and a.hr_id = #{hrID} and a.state = #{state}
+        where a.delete_time is null and a.hr_id = #{hrID}
+        <if test="state != null">and a.state = #{state}</if>
     </select>
 
     <update id="updateState">
