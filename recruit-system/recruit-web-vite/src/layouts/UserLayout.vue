@@ -291,56 +291,34 @@ const handleCommand = (command: string) => {
     gap: 20px;
 
     .search-box {
-      width: 240px;
-      line-height: 1;
+      width: 200px;
 
-      :deep(.beauty-search) {
-        --el-input-bg-color: transparent;
+      :deep(.el-input__wrapper) {
+        border-radius: 20px;
+        box-shadow: none;
+        border: 1px solid #e4e7ed;
+        padding: 0 12px;
+        background: #f5f7fa;
+        transition: all 0.2s;
 
-        .el-input__wrapper {
-          border-radius: 16px;
-          box-shadow: none;
-          border: 1px solid #dcdfe6;
-          padding: 0 12px;
-          background: transparent !important;
-          transition: all 0.2s ease;
+        &:hover, &.is-focus {
+          border-color: #409EFF;
+          background: #fff;
+        }
 
-          &:hover {
-            border-color: #409EFF;
-          }
+        input {
+          font-size: 13px;
+          color: #303133;
+          background: transparent;
 
-          &.is-focus {
-            border-color: #409EFF;
-          }
-
-          input {
-            font-size: 13px;
-            color: #303133;
-            background: transparent !important;
-
-            &::placeholder {
-              color: #a8abb2;
-            }
-          }
-
-          .search-icon {
-            font-size: 14px;
+          &::placeholder {
             color: #a8abb2;
-            margin-right: 4px;
-
-            &:hover {
-              color: #409EFF;
-            }
           }
+        }
 
-          .el-input__clear {
-            color: #c0c4cc;
-            font-size: 12px;
-
-            &:hover {
-              color: #909399;
-            }
-          }
+        .el-icon {
+          font-size: 14px;
+          color: #909399;
         }
       }
     }

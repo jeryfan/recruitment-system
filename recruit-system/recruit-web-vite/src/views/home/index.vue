@@ -87,31 +87,27 @@
     <!-- 搜索区域 -->
     <div class="search-section">
       <div class="search-wrapper">
-        <el-input
-          v-model="searchKeyword"
-          placeholder="搜索职位名称、公司名称、城市..."
-          size="large"
-          class="search-input"
-          @keyup.enter="handleSearch"
-        >
-          <template #prepend>
-            <el-select v-model="searchCity" placeholder="全国" style="width: 90px">
-              <el-option label="全国" value="" />
-              <el-option label="北京" value="北京" />
-              <el-option label="上海" value="上海" />
-              <el-option label="广州" value="广州" />
-              <el-option label="深圳" value="深圳" />
-              <el-option label="成都" value="成都" />
-              <el-option label="杭州" value="杭州" />
-            </el-select>
-          </template>
-          <template #append>
-            <el-button type="primary" @click="handleSearch" style="height: 100%; border-radius: 0 8px 8px 0;">
-              <el-icon><Search /></el-icon>
-              搜索
-            </el-button>
-          </template>
-        </el-input>
+        <div class="search-box">
+          <el-select v-model="searchCity" placeholder="全国" class="city-select">
+            <el-option label="全国" value="" />
+            <el-option label="北京" value="北京" />
+            <el-option label="上海" value="上海" />
+            <el-option label="广州" value="广州" />
+            <el-option label="深圳" value="深圳" />
+            <el-option label="成都" value="成都" />
+            <el-option label="杭州" value="杭州" />
+          </el-select>
+          <input
+            v-model="searchKeyword"
+            class="search-input-inner"
+            placeholder="搜索职位名称、公司名称..."
+            @keyup.enter="handleSearch"
+          />
+          <button class="search-btn" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </button>
+        </div>
 
         <div class="hot-tags">
           <span class="tags-label">
@@ -520,51 +516,73 @@ onMounted(() => {
 
 /* ===== 搜索区域 ===== */
 .search-section {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px 40px;
-  margin: 20px 0;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  margin: 24px 0;
 
   .search-wrapper {
-    max-width: 700px;
+    max-width: 680px;
     margin: 0 auto;
 
-    .search-input {
-      :deep(.el-input-group__prepend) {
-        background: #f5f7fa;
-        border-right: 1px solid #dcdfe6;
-        padding: 0 8px;
-      }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 12px;
+      border: 1.5px solid #e5e7eb;
+      padding: 4px;
+      transition: all 0.2s;
 
-      :deep(.el-input__wrapper) {
-        border-radius: 0;
-        box-shadow: none;
-        border: 1px solid #dcdfe6;
-        border-left: none;
-        border-right: none;
-      }
-
-      :deep(.el-input-group__append) {
-        border-radius: 0 8px 8px 0;
-        padding: 0;
-        background: #409eff;
+      &:hover, &:focus-within {
         border-color: #409eff;
+        box-shadow: 0 4px 16px rgba(64,158,255,0.12);
+      }
 
-        .el-button {
-          color: #fff;
-          font-size: 15px;
-          border-radius: 0 8px 8px 0;
-          padding: 0 24px;
-          font-weight: 500;
+      .city-select {
+        width: 100px;
+        flex-shrink: 0;
 
-          .el-icon { margin-right: 4px; }
+        :deep(.el-input__wrapper) {
+          box-shadow: none;
+          border: none;
+          background: transparent;
+          border-right: 1px solid #e5e7eb;
+          border-radius: 0;
         }
       }
 
-      :deep(.el-input__inner) {
+      .search-input-inner {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0 16px;
+        font-size: 15px;
+        color: #111827;
+        background: transparent;
+        height: 44px;
+
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+
+      .search-btn {
+        background: linear-gradient(135deg, #409eff, #3a8ee6);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0 28px;
         height: 44px;
         font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+
+        &:hover {
+          background: linear-gradient(135deg, #3a8ee6, #2c7bd0);
+          transform: translateY(-1px);
+        }
       }
     }
 
@@ -573,32 +591,30 @@ onMounted(() => {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
 
       .tags-label {
         font-size: 13px;
-        color: #909399;
+        color: #6b7280;
         display: flex;
         align-items: center;
         gap: 4px;
 
-        .el-icon { color: #f7ba2a; }
+        .el-icon { color: #f59e0b; }
       }
 
       .hot-tag {
         cursor: pointer;
         font-size: 13px;
-        color: #606266;
-        padding: 2px 10px;
+        color: #4b5563;
+        padding: 4px 12px;
         border-radius: 20px;
-        border: 1px solid #e4e7ed;
+        background: #f3f4f6;
         transition: all 0.2s;
-        background: #fafafa;
 
         &:hover {
-          color: #409EFF;
-          border-color: #b3d8ff;
-          background: #ecf5ff;
+          color: #409eff;
+          background: #eff6ff;
         }
       }
     }
