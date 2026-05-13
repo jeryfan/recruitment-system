@@ -10,7 +10,7 @@ export function login(data: LoginForm) {
   return request.post<LoginResponse>('/recruit/user/login', data)
 }
 
-export function register(data: LoginForm & { nickname: string }) {
+export function register(data: LoginForm & { nickname: string; tel: string; confirmPassword: string }) {
   return request.post('/recruit/user/register', data)
 }
 

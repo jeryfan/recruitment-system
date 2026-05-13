@@ -108,14 +108,14 @@
             </el-divider>
 
             <div class="social-login">
-              <el-button circle class="social-btn">
-                <el-icon size="20"><img src="https://img.icons8.com/color/48/weixing.png" alt="微信" style="width:20px;height:20px;" /></el-icon>
+              <el-button circle class="social-btn" @click="ElMessage.info('微信登录功能暂未开放')">
+                <el-icon size="20"><img src="@/assets/login-icons/wechat.png" alt="微信" style="width:20px;height:20px;" /></el-icon>
               </el-button>
-              <el-button circle class="social-btn">
-                <el-icon size="20"><img src="https://img.icons8.com/color/48/qq.png" alt="QQ" style="width:20px;height:20px;" /></el-icon>
+              <el-button circle class="social-btn" @click="ElMessage.info('QQ登录功能暂未开放')">
+                <el-icon size="20"><img src="@/assets/login-icons/qq.png" alt="QQ" style="width:20px;height:20px;" /></el-icon>
               </el-button>
-              <el-button circle class="social-btn">
-                <el-icon size="20"><img src="https://img.icons8.com/color/48/weibo.png" alt="微博" style="width:20px;height:20px;" /></el-icon>
+              <el-button circle class="social-btn" @click="ElMessage.info('微博登录功能暂未开放')">
+                <el-icon size="20"><img src="@/assets/login-icons/weibo.png" alt="微博" style="width:20px;height:20px;" /></el-icon>
               </el-button>
             </div>
 
@@ -305,7 +305,7 @@ const loginForm = reactive({
 const loginRules: FormRules = {
   username: [
     { required: true, message: '请输入用户名或手机号', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -380,8 +380,7 @@ const registerRules: FormRules = {
     { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+    { required: true, message: '请输入手机号', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -407,7 +406,9 @@ const handleRegister = async () => {
       await register({
         username: registerForm.username,
         nickname: registerForm.nickname,
-        password: registerForm.password
+        password: registerForm.password,
+        tel: registerForm.phone,
+        confirmPassword: registerForm.confirmPassword
       })
       ElMessage.success('注册成功，请登录')
       switchToLogin()
@@ -452,8 +453,7 @@ const forgotForm = reactive({
 
 const forgotRules: FormRules = {
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+    { required: true, message: '请输入手机号', trigger: 'blur' }
   ],
   code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
   newPassword: [
