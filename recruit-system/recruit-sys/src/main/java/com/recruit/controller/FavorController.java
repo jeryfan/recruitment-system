@@ -60,7 +60,10 @@ public class FavorController {
     @GroupRequired
     @PermissionMeta(value = "取消收藏")
     public DeletedVO cancelFavor(@RequestParam @Positive(message = "{id.positive}") Integer userId, @RequestParam @Positive(message = "{id.positive}") Integer positionId) {
-        favorService.cancelFavor(userId, positionId);
+        boolean success = favorService.cancelFavor(userId, positionId);
+        if (!success) {
+            throw new NotFoundException(45000);
+        }
         return new DeletedVO(1500);
     }
 

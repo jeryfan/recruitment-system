@@ -5,7 +5,7 @@ WORKDIR /app
 
 # 安装依赖
 COPY package.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --registry=https://registry.npmmirror.com
 
 # 复制源码并构建
 COPY . .
