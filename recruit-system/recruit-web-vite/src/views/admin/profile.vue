@@ -125,7 +125,7 @@ const settings = ref({
   siteName: '旅游行业招聘系统',
   logo: '',
   servicePhone: '400-888-8888',
-  copyright: '© 2024 旅游招聘 版权所有'
+  copyright: '© 2026 毕业设计作品'
 })
 
 const passwordRules = {
@@ -193,7 +193,8 @@ const changePassword = async () => {
   try {
     await changePasswordApi({
       oldPassword: passwordForm.value.oldPassword,
-      newPassword: passwordForm.value.newPassword
+      newPassword: passwordForm.value.newPassword,
+      confirmPassword: passwordForm.value.confirmPassword
     })
     ElMessage.success('密码修改成功，请重新登录')
     passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }

@@ -9,6 +9,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login/index.vue'),
     meta: { public: true }
   },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/login/index.vue'),
+    meta: { public: true }
+  },
   // 用户端布局 - 仅求职者可访问
   {
     path: '/',

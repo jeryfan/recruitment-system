@@ -31,7 +31,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="email" label="邮箱" min-width="180" />
-          <el-table-column prop="phone" label="手机号" min-width="120" />
+          <el-table-column prop="tel" label="手机号" min-width="120" />
           <el-table-column label="状态" width="100">
             <template #default="{ row }">
               <el-tag :type="row.state === 1 ? 'success' : 'danger'">
@@ -41,7 +41,7 @@
           </el-table-column>
           <el-table-column label="注册时间" width="180">
             <template #default="{ row }">
-              {{ formatTime(row.createTime) }}
+              {{ formatTime(row.create_time || row.createTime) }}
             </template>
           </el-table-column>
           <el-table-column label="操作" width="120" fixed="right">

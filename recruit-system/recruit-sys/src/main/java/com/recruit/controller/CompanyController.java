@@ -66,7 +66,10 @@ public class CompanyController {
     @PermissionMeta(value = "企业认证")
     @PostMapping("")
     public CreatedVO create(@RequestBody @Validated CreateOrUpdateCompanyDTO validator) {
-        companyService.createCompany(validator);
+        UserDO user = LocalUser.getLocalUser();
+        CompanyDO company = companyService.createCompany(validator);
+        // 建立HR与公司关联
+        hrCompanyService.create(user.getId(), company.getId());
         return new CreatedVO(3200);
     }
 
@@ -109,7 +112,14 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
+    @GroupRequired
+    @PermissionMeta(value = "删除企业")
     public DeletedVO delete(@PathVariable @Positive(message = "{id.positive}") Integer id) {
+        CompanyDO company = companyService.getById(id);
+        if (company == null) {
+            throw new NotFoundException(30000);
+        }
+        companyService.removeById(id);
         return new DeletedVO();
     }
 

@@ -46,8 +46,8 @@
             <template #default="{ row }">
               <el-button type="primary" link @click="viewDetail(row)">查看</el-button>
               <template v-if="row.state === 0">
-                <el-button type="success" link @click="auditCompany(row.id, 1)">通过</el-button>
-                <el-button type="danger" link @click="auditCompany(row.id, 2)">拒绝</el-button>
+                <el-button type="success" link @click="auditCompanyFn(row.id, 1)">通过</el-button>
+                <el-button type="danger" link @click="auditCompanyFn(row.id, 2)">拒绝</el-button>
               </template>
             </template>
           </el-table-column>
@@ -166,22 +166,28 @@ const auditCompanyFn = async (id: number, state: number) => {
   try {
     await ElMessageBox.confirm(`确定${actionText}该企业吗？`, '提示', { type: 'warning' })
     await auditCompany(id, state)
-    ElMessage.success('操作成功')
+    ElMessage.success(`${actionText}成功`)
     fetchCompanies()
-  } catch {
-    // 取消操作
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error('操作失败，请重试')
+    }
   }
 }
 
 const auditAndClose = async (id: number | undefined, state: number) => {
   if (!id) return
+  const actionText = state === 1 ? '通过' : '拒绝'
   try {
+    await ElMessageBox.confirm(`确定${actionText}该企业吗？`, '提示', { type: 'warning' })
     await auditCompany(id, state)
-    ElMessage.success('操作成功')
+    ElMessage.success(`${actionText}成功`)
     detailVisible.value = false
     fetchCompanies()
-  } catch (error) {
-    ElMessage.error('操作失败')
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error('操作失败，请重试')
+    }
   }
 }
 

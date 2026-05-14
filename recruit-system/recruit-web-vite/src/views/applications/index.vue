@@ -135,17 +135,17 @@ const formatTime = (time?: string) => {
 const fetchApplications = async () => {
   loading.value = true
   try {
-    const res = await getApplicationList({
-      page: page.value,
-      size: pageSize.value
-    })
-    applicationList.value = res.list
-    total.value = res.total
-    // Fetch all for stats (only on first load)
-    if (allApplications.value.length === 0) {
-      const allRes = await getApplicationList({ page: 1, size: 100 })
-      allApplications.value = allRes.list
+    // 后端不支持按 state 筛选，获取全部数据后客户端过滤
+    const allRes = await getApplicationList({ page: 1, size: 100 })
+    allApplications.value = allRes.list
+    let filtered = allRes.list
+    if (filterState.value !== -1) {
+      filtered = filtered.filter((item: any) => item.state === filterState.value)
     }
+    // 客户端分页
+    const start = (page.value - 1) * pageSize.value
+    applicationList.value = filtered.slice(start, start + pageSize.value)
+    total.value = filtered.length
   } catch {
     ElMessage.error('获取投递记录失败')
   } finally {

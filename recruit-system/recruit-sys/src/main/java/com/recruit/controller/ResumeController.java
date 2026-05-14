@@ -2,6 +2,7 @@ package com.recruit.controller;
 
 import io.github.talelin.autoconfigure.exception.NotFoundException;
 import io.github.talelin.core.annotation.GroupRequired;
+import io.github.talelin.core.annotation.LoginRequired;
 import io.github.talelin.core.annotation.Logger;
 import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
@@ -130,6 +131,7 @@ public class ResumeController {
      * @return
      */
     @PutMapping("/education/update")
+    @LoginRequired
     public UpdatedVO updateEducation( @RequestBody EducationDO educationDO) {
         // 更新
         boolean b = educationService.updateById(educationDO);
@@ -141,6 +143,7 @@ public class ResumeController {
      * @return
      */
     @PostMapping("/education")
+    @LoginRequired
     public CreatedVO addEducation( @RequestBody EducationDO educationDO) {
         // 新增
         boolean b = educationService.save(educationDO);
@@ -153,6 +156,7 @@ public class ResumeController {
      * @return
      */
     @DeleteMapping("/education/{id}")
+    @LoginRequired
     public  DeletedVO delEducation(@PathVariable Integer id){
         educationService.removeById(id);
         return new DeletedVO(2000);
@@ -175,6 +179,7 @@ public class ResumeController {
      * @return
      */
     @PutMapping("/project/update")
+    @LoginRequired
     public UpdatedVO updateProject( @RequestBody ProjectDO projectDO) {
         // 更新
         boolean b = projectService.updateById(projectDO);
@@ -186,6 +191,7 @@ public class ResumeController {
      * @return
      */
     @PostMapping("/project")
+    @LoginRequired
     public CreatedVO addProject( @RequestBody ProjectDO projectDO) {
         // 新增
         boolean b = projectService.save(projectDO);
@@ -198,6 +204,7 @@ public class ResumeController {
      * @return
      */
     @DeleteMapping("/project/{id}")
+    @LoginRequired
     public  DeletedVO delProject(@PathVariable Integer id){
         projectService.removeById(id);
         return new DeletedVO(2000);
@@ -215,11 +222,12 @@ public class ResumeController {
     }
 
     /**
-     * 更新项目经历
+     * 更新实习经历
      * @param
      * @return
      */
     @PutMapping("/experience/update")
+    @LoginRequired
     public UpdatedVO updateExperience( @RequestBody ExperienceDO experienceDO) {
         // 更新
         boolean b = experienceService.updateById(experienceDO);
@@ -231,6 +239,7 @@ public class ResumeController {
      * @return
      */
     @PostMapping("/experience")
+    @LoginRequired
     public CreatedVO addExperience( @RequestBody ExperienceDO experienceDO) {
         // 新增
         boolean b = experienceService.save(experienceDO);
@@ -238,11 +247,12 @@ public class ResumeController {
     }
 
     /**
-     * 根据id删除项目经历
+     * 根据id删除实习经历
      * @param id
      * @return
      */
     @DeleteMapping("/experience/{id}")
+    @LoginRequired
     public  DeletedVO delExperience(@PathVariable Integer id){
         experienceService.removeById(id);
         return new DeletedVO(2000);

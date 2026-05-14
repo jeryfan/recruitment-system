@@ -44,7 +44,7 @@ public class CompanyServiceImpl extends ServiceImpl<CompanyMapper, CompanyDO> im
     }
 
     @Override
-    public boolean createCompany(CreateOrUpdateCompanyDTO validator) {
+    public CompanyDO createCompany(CreateOrUpdateCompanyDTO validator) {
         CompanyDO companyDO = new CompanyDO();
         companyDO.setName(validator.getName());
         companyDO.setForeignName(validator.getForeignName());
@@ -54,7 +54,8 @@ public class CompanyServiceImpl extends ServiceImpl<CompanyMapper, CompanyDO> im
         companyDO.setDescription(validator.getDescription());
         // 新增企业，状态默认都为0，表示未审核
         companyDO.setState(0);
-        return companyMapper.insert(companyDO) > 0;
+        companyMapper.insert(companyDO);
+        return companyDO;
     }
 
     @Override

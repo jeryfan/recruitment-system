@@ -166,7 +166,7 @@
             <el-form-item prop="username">
               <el-input
                 v-model="registerForm.username"
-                placeholder="用户名（4-20位字母数字）"
+                placeholder="用户名（2-10位）"
                 size="large"
                 :prefix-icon="User"
               />
@@ -195,7 +195,7 @@
               <el-input
                 v-model="registerForm.password"
                 type="password"
-                placeholder="密码（6-20位）"
+                placeholder="密码（6-22位，字母数字或_*&$#@）"
                 size="large"
                 :prefix-icon="Lock"
                 show-password
@@ -280,8 +280,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { User, Lock, Compass, Check, Phone, Avatar, OfficeBuilding, Key } from '@element-plus/icons-vue'
@@ -289,13 +289,22 @@ import { useUserStore } from '@/stores'
 import { register } from '@/api/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
+
+const isRegister = ref(false)
+
+// 如果是从 /register 路由进入，自动切换到注册模式
+onMounted(() => {
+  if (route.path === '/register' || route.query.mode === 'register') {
+    isRegister.value = true
+  }
+})
 
 // 登录相关
 const loginFormRef = ref<FormInstance>()
 const loginLoading = ref(false)
 const rememberMe = ref(false)
-const isRegister = ref(false)
 
 const loginForm = reactive({
   username: '',
@@ -323,7 +332,6 @@ const handleLogin = async () => {
     try {
       const user = await userStore.login(loginForm)
       if (user) {
-        ElMessage.success('登录成功')
         // 根据角色跳转到不同的首页
         const role = user.role
         if (role === 'admin') {
@@ -373,7 +381,7 @@ const validateAgreement = (rule: any, value: boolean, callback: Function) => {
 const registerRules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9]{4,20}$/, message: '用户名需为4-20位字母或数字', trigger: 'blur' }
+    { min: 2, max: 10, message: '用户名长度在 2 到 10 个字符', trigger: 'blur' }
   ],
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
@@ -384,7 +392,7 @@ const registerRules: FormRules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { pattern: /^[A-Za-z0-9_*&$#@]{6,22}$/, message: '密码需为6-22位字母、数字或_*&$#@', trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
@@ -403,12 +411,15 @@ const handleRegister = async () => {
 
     registerLoading.value = true
     try {
+      // 根据角色分配权限组：求职者=2，HR=3
+      const groupIds = registerForm.role === 'hr' ? [3] : [2]
       await register({
         username: registerForm.username,
         nickname: registerForm.nickname,
         password: registerForm.password,
         tel: registerForm.phone,
-        confirmPassword: registerForm.confirmPassword
+        confirmPassword: registerForm.confirmPassword,
+        group_ids: groupIds
       })
       ElMessage.success('注册成功，请登录')
       switchToLogin()
@@ -444,6 +455,7 @@ const showForgot = ref(false)
 const forgotRef = ref<FormInstance>()
 const forgotLoading = ref(false)
 const codeCountdown = ref(0)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 const forgotForm = reactive({
   phone: '',
@@ -466,13 +478,19 @@ const sendCode = () => {
   // 模拟发送验证码
   codeCountdown.value = 60
   ElMessage.success('验证码已发送')
-  const timer = setInterval(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+  countdownTimer = setInterval(() => {
     codeCountdown.value--
     if (codeCountdown.value <= 0) {
-      clearInterval(timer)
+      if (countdownTimer) clearInterval(countdownTimer)
+      countdownTimer = null
     }
   }, 1000)
 }
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+})
 
 const handleForgot = async () => {
   if (!forgotRef.value) return

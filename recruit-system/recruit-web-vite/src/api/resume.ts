@@ -120,6 +120,11 @@ export function getMyResume() {
   return request.get<BackendResume>(`/recruit/resume/get/${userId}`).then(convertBackendResume)
 }
 
+// 根据简历ID获取完整简历（含教育、工作经历）
+export function getResumeById(id: number) {
+  return request.get<BackendResume>(`/recruit/resume/${id}`).then(convertBackendResume)
+}
+
 export function createResume(data: Partial<Resume>) {
   const userStore = useUserStore()
   const userId = userStore.userInfo?.id
@@ -210,7 +215,7 @@ interface BackendPageResponse<T> {
   count: number
 }
 
-// 后端返回的申请记录数据结构
+// 后端返回的申请记录数据结构（Jackson SNAKE_CASE 序列化后为下划线命名）
 interface BackendApplication {
   id: number
   user_id: number
@@ -220,12 +225,16 @@ interface BackendApplication {
   company_id: number
   state: number
   apply_time: string | null
+  create_time: string
   // 关联数据
-  title: string           // 职位名称
-  name: string           // 公司名称
-  position_city: string   // 工作地点
-  salary_down: number     // 最低薪资
-  salary_up: number       // 最高薪资
+  nickname: string
+  email: string
+  tel: string
+  title: string
+  name: string
+  position_city: string
+  salary_down: number
+  salary_up: number
 }
 
 // 转换后端申请记录为前端格式
@@ -238,12 +247,12 @@ function convertBackendApplication(backend: BackendApplication): any {
     hrId: backend.hr_id,
     companyId: backend.company_id,
     state: backend.state,
-    createTime: backend.apply_time,
-    positionTitle: backend.title,       // 后端是title，前端是positionTitle
-    companyName: backend.name,          // 后端是name，前端是companyName
-    city: backend.position_city,        // 后端是position_city，前端是city
-    salaryMin: backend.salary_down ? backend.salary_down / 1000 : 0,  // 转换为K
-    salaryMax: backend.salary_up ? backend.salary_up / 1000 : 0       // 转换为K
+    createTime: backend.apply_time || backend.create_time,
+    positionTitle: backend.title,
+    companyName: backend.name,
+    city: backend.position_city,
+    salaryMin: backend.salary_down ? backend.salary_down / 1000 : 0,
+    salaryMax: backend.salary_up ? backend.salary_up / 1000 : 0
   }
 }
 

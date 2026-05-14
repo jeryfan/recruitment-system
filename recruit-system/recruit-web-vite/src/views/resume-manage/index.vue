@@ -57,7 +57,7 @@
 
     <!-- 简历详情弹窗 -->
     <el-dialog v-model="detailVisible" title="简历详情" width="800px">
-      <div v-if="selectedResume" class="resume-detail">
+      <div v-if="selectedResume" v-loading="detailLoading" class="resume-detail">
         <div class="detail-header">
           <h3>{{ selectedResume.resumeRealName }}</h3>
           <p>{{ selectedResume.resumeGender === 1 ? '男' : '女' }} · {{ selectedResume.resumeCity }}</p>
@@ -71,6 +71,42 @@
         <div class="detail-section" v-if="selectedResume.resumeSelfEvaluation">
           <h4>自我评价</h4>
           <p>{{ selectedResume.resumeSelfEvaluation }}</p>
+        </div>
+
+        <!-- 教育经历 -->
+        <div class="detail-section">
+          <h4>教育经历</h4>
+          <el-empty v-if="!fullResume?.educations?.length" description="暂无教育经历" :image-size="60" />
+          <div v-else class="timeline-list">
+            <div v-for="edu in fullResume.educations" :key="edu.id" class="timeline-item">
+              <div class="timeline-header">
+                <span class="timeline-title">{{ edu.schoolName }}</span>
+                <span class="timeline-time">{{ edu.startTime }} 至 {{ edu.endTime || '至今' }}</span>
+              </div>
+              <div class="timeline-content">
+                <p>{{ edu.major }} · {{ diplomaMap[edu.diploma] }}</p>
+                <p v-if="edu.description" class="timeline-desc">{{ edu.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 工作经历 -->
+        <div class="detail-section">
+          <h4>工作经历</h4>
+          <el-empty v-if="!fullResume?.experiences?.length" description="暂无工作经历" :image-size="60" />
+          <div v-else class="timeline-list">
+            <div v-for="exp in fullResume.experiences" :key="exp.id" class="timeline-item">
+              <div class="timeline-header">
+                <span class="timeline-title">{{ exp.companyName }}</span>
+                <span class="timeline-time">{{ exp.startTime }} 至 {{ exp.endTime || '至今' }}</span>
+              </div>
+              <div class="timeline-content">
+                <p>{{ exp.position }}</p>
+                <p v-if="exp.performance" class="timeline-desc">{{ exp.performance }}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -89,6 +125,8 @@ import { User } from '@element-plus/icons-vue'
 import moment from 'moment'
 import { useUserStore } from '@/stores/user'
 import { getHrApplications, updateApplicationState } from '@/api/interview'
+import { getResumeById } from '@/api/resume'
+import type { Resume } from '@/types'
 
 const userStore = useUserStore()
 const loading = ref(false)
@@ -99,6 +137,8 @@ const total = ref(0)
 const filterState = ref<number | ''>('')
 const detailVisible = ref(false)
 const selectedResume = ref<any>(null)
+const fullResume = ref<Resume | null>(null)
+const detailLoading = ref(false)
 
 const statusMap: Record<number, { text: string; type: 'info' | 'success' | 'warning' | 'danger' }> = {
   0: { text: '待处理', type: 'info' },
@@ -147,9 +187,30 @@ const handlePageChange = (val: number) => {
   fetchApplications()
 }
 
+const diplomaMap: Record<number, string> = {
+  0: '高中及以下',
+  1: '大专',
+  2: '本科',
+  3: '硕士',
+  4: '博士'
+}
+
 const viewResume = async (item: any) => {
   selectedResume.value = item
+  fullResume.value = null
   detailVisible.value = true
+  detailLoading.value = true
+  try {
+    // 根据简历ID获取完整简历信息（含教育、工作经历）
+    const resumeId = item.resume_id || item.resumeId
+    if (resumeId) {
+      fullResume.value = await getResumeById(resumeId)
+    }
+  } catch {
+    // 静默失败，仍展示列表中的基本信息
+  } finally {
+    detailLoading.value = false
+  }
 }
 
 const updateState = async (state: number) => {
@@ -265,15 +326,64 @@ onMounted(fetchApplications)
     margin-top: 24px;
 
     h4 {
-      margin: 0 0 12px 0;
+      margin: 0 0 16px 0;
       color: #303133;
       border-left: 4px solid #409eff;
-      padding-left: 8px;
+      padding-left: 10px;
+      font-size: 15px;
     }
     p {
       margin: 0;
       color: #606266;
       line-height: 1.6;
+    }
+  }
+
+  .timeline-list {
+    .timeline-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+
+        .timeline-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #303133;
+        }
+
+        .timeline-time {
+          font-size: 13px;
+          color: #909399;
+          flex-shrink: 0;
+        }
+      }
+
+      .timeline-content {
+        p {
+          margin: 2px 0;
+          font-size: 14px;
+          color: #606266;
+        }
+
+        .timeline-desc {
+          margin-top: 6px;
+          color: #606266;
+          line-height: 1.6;
+          background: #f5f7fa;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 13px;
+        }
+      }
     }
   }
 }

@@ -21,7 +21,7 @@
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
         <result column="delete_time" property="deleteTime" />
-        <result column="state" property="state" />
+        <result column="app_state" property="state" />
         <result column="apply_time" property="applyTime" />
         <result column="resume_id" property="resumeId" />
         <result column="position_id" property="positionId" />
@@ -38,7 +38,7 @@
     </resultMap>
 
     <select id="getByHrId" resultMap="ApplicationResultMap">
-        select a.*,u.*,r.*,p.*,c.*,c.city position_city
+        select a.*,u.*,r.*,p.*,c.*,c.city position_city,a.state as app_state
         from application a
                  LEFT JOIN  user u on a.user_id = u.id
                  LEFT JOIN  resume r on a.resume_id = r.id
@@ -61,7 +61,7 @@
     </select>
 
     <select id="getByUserId" resultMap="ApplicationResultMap">
-        select a.*,u.*,r.*,p.*,c.*,c.city position_city
+        select a.*,u.*,r.*,p.*,c.*,c.city position_city,a.state as app_state
         from application a
                  LEFT JOIN  user u on a.user_id = u.id
                  LEFT JOIN  resume r on a.resume_id = r.id

@@ -50,11 +50,11 @@ export function getCategoryList() {
   return request.get<any[]>('/recruit/admin/categories')
 }
 
-export function createCategory(data: { name: string; info?: string }) {
+export function createCategory(data: { name: string; description?: string }) {
   return request.post('/recruit/admin/categories', data)
 }
 
-export function updateCategory(id: number, data: { name: string; info?: string }) {
+export function updateCategory(id: number, data: { name: string; description?: string }) {
   return request.put(`/recruit/admin/categories/${id}`, data)
 }
 

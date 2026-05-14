@@ -129,6 +129,10 @@ public class AuthorizeVerifyResolverImpl implements AuthorizeVerifyResolver {
         if (user == null) {
             throw new NotFoundException(10021);
         }
+        // 检查用户是否被禁用
+        if (user.getState() == null || user.getState() == 0) {
+            throw new AuthenticationException(10001);
+        }
         String avatarUrl;
         if (user.getAvatar() == null) {
             avatarUrl = null;

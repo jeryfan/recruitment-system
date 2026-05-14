@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -190,10 +190,11 @@ const changePassword = async () => {
     } as any)
     ElMessage.success('密码修改成功，请重新登录')
     passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
-    setTimeout(() => {
+    const logoutTimer = setTimeout(() => {
       userStore.logout()
       window.location.href = '/login'
     }, 1500)
+    onUnmounted(() => clearTimeout(logoutTimer))
   } catch {
     ElMessage.error('密码修改失败，请检查原密码是否正确')
   }

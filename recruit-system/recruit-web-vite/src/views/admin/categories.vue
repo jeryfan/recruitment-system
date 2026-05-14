@@ -10,11 +10,11 @@
 
       <el-empty v-if="!categoryList.length && !loading" description="暂无分类" />
 
-      <div v-ce v-loading="loading">
+      <div v-else v-loading="loading">
         <el-table :data="categoryList" style="width: 100%">
           <el-table-column type="index" width="60" label="序号" />
           <el-table-column prop="name" label="分类名称" min-width="150" />
-          <el-table-column prop="info" label="分类描述" min-width="300" show-overflow-tooltip />
+          <el-table-column prop="description" label="分类描述" min-width="300" show-overflow-tooltip />
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link @click="editCategory(row)">编辑</el-button>
@@ -32,7 +32,7 @@
           <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
         <el-form-item label="分类描述">
-          <el-input v-model="form.info" type="textarea" :rows="3" placeholder="请输入分类描述" />
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入分类描述" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -56,7 +56,7 @@ const isEdit = ref(false)
 const form = reactive({
   id: 0,
   name: '',
-  info: ''
+  description: ''
 })
 
 const fetchCategories = async () => {
@@ -75,7 +75,7 @@ const showAddDialog = () => {
   isEdit.value = false
   form.id = 0
   form.name = ''
-  form.info = ''
+  form.description = ''
   dialogVisible.value = true
 }
 
@@ -83,7 +83,7 @@ const editCategory = (category: any) => {
   isEdit.value = true
   form.id = category.id
   form.name = category.name
-  form.info = category.info
+  form.description = category.description
   dialogVisible.value = true
 }
 
@@ -94,9 +94,9 @@ const saveCategory = async () => {
   }
   try {
     if (isEdit.value) {
-      await updateCategory(form.id, { name: form.name, info: form.info })
+      await updateCategory(form.id, { name: form.name, description: form.description })
     } else {
-      await createCategory({ name: form.name, info: form.info })
+      await createCategory({ name: form.name, description: form.description })
     }
     ElMessage.success('保存成功')
     dialogVisible.value = false

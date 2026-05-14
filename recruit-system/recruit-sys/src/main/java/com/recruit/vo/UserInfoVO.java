@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,12 +48,24 @@ public class UserInfoVO {
     private String tel;
 
     /**
+     * 用户状态：1-正常，0-禁用
+     */
+    private Integer state;
+
+    /**
+     * 注册时间
+     */
+    private Date createTime;
+
+    /**
      * 分组
      */
     private List<GroupDO> groups;
 
     public UserInfoVO(UserDO user, List<GroupDO> groups) {
         BeanUtil.copyProperties(user, this);
+        this.state = user.getState();
+        this.createTime = user.getCreateTime();
         this.groups = groups;
     }
 }

@@ -23,11 +23,13 @@
               placeholder="搜索职位、公司"
               clearable
               @keyup.enter="handleSearch"
-              @click="handleSearch"
               class="beauty-search"
             >
               <template #prefix>
                 <el-icon class="search-icon"><Search /></el-icon>
+              </template>
+              <template #suffix>
+                <el-icon class="search-action" @click="handleSearch"><ArrowRight /></el-icon>
               </template>
             </el-input>
           </div>
@@ -96,11 +98,11 @@
               <el-icon size="28" color="#409EFF"><Compass /></el-icon>
               <span>旅游招聘平台</span>
             </div>
-            <p class="brand-desc">专注旅游行业人才招聘，连接优质企业与求职者，助力旅游行业发展。</p>
+            <p class="brand-desc">基于 SpringBoot + Vue3 的招聘系统设计与实现，连接优质企业与求职者。</p>
             <div class="brand-tags">
-              <span class="brand-tag">专业</span>
-              <span class="brand-tag">高效</span>
-              <span class="brand-tag">安全</span>
+              <span class="brand-tag">毕业设计</span>
+              <span class="brand-tag">2026</span>
+              <span class="brand-tag">招聘系统</span>
             </div>
           </div>
 
@@ -125,12 +127,12 @@
               </ul>
             </div>
             <div class="links-group">
-              <h4>关于我们</h4>
+              <h4>关于系统</h4>
               <ul>
-                <li><span>旅游行业招聘专家</span></li>
-                <li><span>服务全国旅游企业</span></li>
-                <li><span>累计服务万名求职者</span></li>
-                <li><span>严格审核企业资质</span></li>
+                <li><span>毕业设计作品</span></li>
+                <li><span>SpringBoot + Vue3 技术栈</span></li>
+                <li><span>前后端分离架构</span></li>
+                <li><span>RBAC 权限管理</span></li>
               </ul>
             </div>
           </div>
@@ -138,11 +140,9 @@
 
         <!-- 分割线 + 版权 -->
         <div class="footer-bottom">
-          <span>© 2024 旅游招聘平台 版权所有</span>
+          <span>© 2026 毕业设计作品</span>
           <span class="footer-divider">|</span>
-          <span>专注旅游行业人才服务</span>
-          <span class="footer-divider">|</span>
-          <span>服务热线：400-000-0000</span>
+          <span>基于 SpringBoot + Vue3 的招聘系统设计与实现</span>
         </div>
       </div>
     </footer>
@@ -153,7 +153,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
-import { Compass, Search, User, ArrowDown, Document, List, Star, SwitchButton, Calendar, Collection } from '@element-plus/icons-vue'
+import { Compass, Search, User, ArrowDown, Document, List, Star, SwitchButton, Calendar, Collection, ArrowRight } from '@element-plus/icons-vue'
 import NotificationBell from '@/components/NotificationBell.vue'
 
 const route = useRoute()
@@ -291,23 +291,35 @@ const handleCommand = (command: string) => {
     gap: 20px;
 
     .search-box {
-      width: 200px;
+      width: 280px;
+      display: flex;
+      align-items: center;
+      height: 40px;
+
+      :deep(.el-input) {
+        height: 40px;
+      }
 
       :deep(.el-input__wrapper) {
-        border-radius: 20px;
-        box-shadow: none;
+        border-radius: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         border: 1px solid #e4e7ed;
-        padding: 0 12px;
-        background: #f5f7fa;
-        transition: all 0.2s;
+        padding: 0 16px;
+        background: #fff;
+        transition: all 0.25s ease;
+        height: 40px;
 
-        &:hover, &.is-focus {
+        &:hover {
           border-color: #409EFF;
-          background: #fff;
+        }
+
+        &.is-focus {
+          border-color: #409EFF;
+          box-shadow: 0 0 0 1px #409EFF inset;
         }
 
         input {
-          font-size: 13px;
+          font-size: 14px;
           color: #303133;
           background: transparent;
 
@@ -316,9 +328,21 @@ const handleCommand = (command: string) => {
           }
         }
 
-        .el-icon {
-          font-size: 14px;
+        .search-icon {
+          font-size: 16px;
           color: #909399;
+          margin-right: 4px;
+        }
+
+        .search-action {
+          font-size: 16px;
+          color: #c0c4cc;
+          cursor: pointer;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #409EFF;
+          }
         }
       }
     }

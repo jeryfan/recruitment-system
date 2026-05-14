@@ -97,6 +97,7 @@ public class AdminController {
     public PageResponseVO<UserInfoVO> getUsers(
             @RequestParam(name = "group_id", required = false)
             @Min(value = 1, message = "{group.id.positive}") Integer groupId,
+            @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "count", required = false, defaultValue = "10")
             @Min(value = 1, message = "{page.count.min}")
             @Max(value = 30, message = "{page.count.max}") Integer count,
@@ -107,6 +108,14 @@ public class AdminController {
             List<GroupDO> groups = groupService.getUserGroupsByUserId(user.getId());
             return new UserInfoVO(user, groups);
         }).collect(Collectors.toList());
+        // 关键词过滤（用户名/昵称模糊匹配）
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String kw = keyword.trim().toLowerCase();
+            userInfos = userInfos.stream()
+                    .filter(u -> (u.getUsername() != null && u.getUsername().toLowerCase().contains(kw))
+                            || (u.getNickname() != null && u.getNickname().toLowerCase().contains(kw)))
+                    .collect(Collectors.toList());
+        }
         return PageUtil.build(iPage, userInfos);
     }
 

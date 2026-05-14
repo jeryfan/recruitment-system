@@ -127,6 +127,21 @@ export function getJobList(params: JobQuery) {
   })
 }
 
+// 根据公司ID查询职位列表
+export function getJobListByCompany(companyId: number, params: { page?: number; size?: number }) {
+  const { page = 1, size = 10 } = params
+  const pageParam = page - 1
+  return request.get<any>(`/recruit/position/page/company/${companyId}`, {
+    params: { page: pageParam, count: size }
+  }).then(res => {
+    const items = res.items || []
+    return {
+      list: items.map(convertBackendJob),
+      total: res.total || 0
+    }
+  })
+}
+
 // 获取热门职位（按浏览量排序）
 export function getHotJobs() {
   return request.get<BackendJob[]>('/recruit/position/sort').then(items => {
@@ -136,25 +151,25 @@ export function getHotJobs() {
 
 export function getJobDetail(id: number) {
   return request.get<any>(`/recruit/position/${id}`).then((data: any) => {
-    // 后端返回的是 PositionResultDO（下划线命名），转换为前端格式
+    // 后端返回的是 PositionResultDO（Jackson SNAKE_CASE 下划线命名）
     const job: Job = {
       id: data.id,
       title: data.title,
-      companyName: data.company_name || data.CompanyName || '',
+      companyName: data.company_name || '',
       companyLogo: data.logo || undefined,
       salaryMin: data.salary_down ? data.salary_down / 1000 : 0,
       salaryMax: data.salary_up ? data.salary_up / 1000 : 0,
       city: data.city || '',
       experience: data.experience || '',
       education: data.education || '',
-      description: data.description || data.company_desc || data.CompanyDesc || '',
+      description: data.description || data.company_desc || '',
       requirement: data.requirement || '',
-      tags: data.category_name ? [data.category_name] : (data.CategoryName ? [data.CategoryName] : []),
+      tags: data.category_name ? [data.category_name] : [],
       hits: data.hits || 0,
       state: data.state || 0,
       createTime: data.release_date || '',
-      hrId: data.hr_id || data.hrId,
-      companyId: data.company_id || data.companyId
+      hrId: data.hr_id,
+      companyId: data.company_id
     }
     return job
   })
@@ -198,7 +213,7 @@ export function getFavoriteList(params: { page?: number; size?: number }) {
     return Promise.reject(new Error('用户未登录'))
   }
   // 后端接口: /recruit/favor/{userId} 返回直接数组，非分页格式
-  // 注意：收藏接口返回的是 BackendFavoriteJob（驼峰命名，字段较少）
+  // 注意：收藏接口返回的是 PositionDO（Jackson SNAKE_CASE 下划线命名，字段较少）
   return request.get<BackendFavoriteJob[]>(`/recruit/favor/${userId}`).then(items => {
     const { page = 1, size = 10 } = params
     // 手动分页（后端返回全部数据）

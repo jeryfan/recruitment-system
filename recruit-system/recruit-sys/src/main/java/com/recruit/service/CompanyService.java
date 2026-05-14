@@ -20,7 +20,7 @@ public interface CompanyService extends IService<CompanyDO> {
 
     boolean updateState(Integer id, Integer state);
 
-    boolean createCompany(CreateOrUpdateCompanyDTO validator);
+    CompanyDO createCompany(CreateOrUpdateCompanyDTO validator);
 
     CompanyDO getByName(String name);
 

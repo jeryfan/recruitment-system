@@ -120,15 +120,16 @@ const fetchInterviews = async () => {
   try {
     const pageParam = page.value - 1
     const res = await request.get<any>(`/recruit/interview/page/find/${userId}`, {
-      params: { page: pageParam, count: pageSize.value, state: 0 }
+      params: { page: pageParam, count: pageSize.value }
     })
-    let items = res.items || []
-    // 前端过滤tab
+    const allItems = res.items || []
+    // 前端过滤tab后再分页
+    let filtered = allItems
     if (activeTab.value !== 'all') {
-      items = items.filter((item: any) => String(item.status) === activeTab.value)
+      filtered = allItems.filter((item: any) => String(item.status) === activeTab.value)
     }
-    interviewList.value = items
-    total.value = res.total || 0
+    interviewList.value = filtered
+    total.value = filtered.length
   } catch (error) {
     ElMessage.error('获取面试记录失败')
   } finally {

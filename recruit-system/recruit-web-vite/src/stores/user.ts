@@ -30,11 +30,14 @@ export const useUserStore = defineStore('user', () => {
       token.value = accessToken
       localStorage.setItem('token', accessToken)
       const user = await fetchUserInfo()
+      if (!user) {
+        ElMessage.error('登录成功但获取用户信息失败')
+        return null
+      }
       ElMessage.success('登录成功')
       return user
     } catch (error) {
       console.error('登录失败:', error)
-      ElMessage.error('登录失败')
       return null
     }
   }

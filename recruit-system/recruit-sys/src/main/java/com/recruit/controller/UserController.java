@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.recruit.mapper.UserGroupMapper;
 import com.recruit.model.UserGroupDO;
+import io.github.talelin.autoconfigure.exception.AuthenticationException;
 import io.github.talelin.autoconfigure.exception.NotFoundException;
 import io.github.talelin.autoconfigure.exception.ParameterException;
 import io.github.talelin.core.annotation.*;
@@ -68,6 +69,10 @@ public class UserController {
         UserDO user = userService.getUserByUsername(validator.getUsername());
         if (user == null) {
             throw new NotFoundException(10021);
+        }
+        // 检查用户是否被禁用
+        if (user.getState() == null || user.getState() == 0) {
+            throw new AuthenticationException(10001);
         }
         boolean valid = userIdentityService.verifyUsernamePassword(
                 user.getId(),

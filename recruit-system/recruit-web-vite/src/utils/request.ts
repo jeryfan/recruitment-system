@@ -51,7 +51,8 @@ request.interceptors.response.use(
       return res
     }
     // 成功状态码：0, 200, 1000-2000（Lin CMS 状态码范围）
-    const successCodes = [0, 200, 1000, 1010, 1100, 1200, 1500, 1600, 2000, 2100, 2200, 3000, 3100, 3200, 4000, 4100, 5000, 5100, 5200, 6000, 6100, 7000, 7100, 7200]
+    // Lin CMS 成功状态码：基础码（1-15）+ 业务码（1000-7200）
+    const successCodes = [0, 200, 1, 4, 5, 6, 7, 8, 9, 10, 11, 15, 1000, 1010, 1100, 1200, 1500, 1600, 2000, 2100, 2200, 3000, 3100, 3200, 4000, 4100, 5000, 5100, 5200, 6000, 6100, 7000, 7100, 7200]
     if (!successCodes.includes(res.code)) {
       // token过期或无效 —— 清除并跳转（避免多个并发请求弹多次，由 clearAuthAndRedirect 去重）
       if (AUTH_ERROR_CODES.includes(res.code)) {

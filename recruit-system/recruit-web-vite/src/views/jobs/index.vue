@@ -181,22 +181,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   Search, Location, OfficeBuilding, Briefcase, MagicStick
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { Job } from '@/types'
-import { getJobList, applyJob as applyJobApi, getJobDetail } from '@/api/job'
+import { getJobList, getJobListByCompany, applyJob as applyJobApi, getJobDetail } from '@/api/job'
 import { getMyResume } from '@/api/resume'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const loading = ref(false)
+const companyId = ref<number | undefined>(undefined)
+const companyName = ref('')
 const applying = ref<number | null>(null)
 const recommendList = ref<{ score: number; position: any }[]>([])
 const jobList = ref<Job[]>([])
@@ -232,13 +235,21 @@ const categories = ref([
 const fetchJobs = async () => {
   loading.value = true
   try {
-    const res = await getJobList({
-      page: page.value,
-      size: pageSize.value,
-      keyword: searchForm.keyword,
-      city: searchForm.city,
-      categoryId: searchForm.categoryId
-    })
+    let res
+    if (companyId.value) {
+      res = await getJobListByCompany(companyId.value, {
+        page: page.value,
+        size: pageSize.value
+      })
+    } else {
+      res = await getJobList({
+        page: page.value,
+        size: pageSize.value,
+        keyword: searchForm.keyword,
+        city: searchForm.city,
+        categoryId: searchForm.categoryId
+      })
+    }
     jobList.value = res.list
     total.value = res.total
   } finally {
@@ -324,6 +335,10 @@ const fetchRecommendations = async () => {
 }
 
 onMounted(() => {
+  const cid = route.query.companyId
+  if (cid) {
+    companyId.value = Number(cid)
+  }
   fetchJobs()
   if (userStore.isLoggedIn) fetchRecommendations()
 })

@@ -233,6 +233,29 @@ public class PositionController {
     }
 
     /**
+     * 根据公司id查询该公司的所有职位
+     * @param count
+     * @param page
+     * @param companyId
+     * @return
+     */
+    @GetMapping("/page/company/{companyId}")
+    public PageResponseVO<PositionDO> pageByCompanyId(
+            @RequestParam(name = "count", required = false, defaultValue = "10")
+            @Min(value = 1, message = "{page.count.min}")
+            @Max(value = 30, message = "{page.count.max}") Integer count,
+            @RequestParam(name = "page", required = false, defaultValue = "0")
+            @Min(value = 0, message = "{page.number.min}") Integer page,
+            @PathVariable(value = "companyId") @Positive(message = "{id.positive}") Integer companyId
+    ) {
+        Page<PositionDO> pager = new Page<>(page, count);
+        QueryWrapper<PositionDO> wrapper = new QueryWrapper<>();
+        wrapper.eq("company_id", companyId).eq("state", 1);
+        IPage<PositionDO> paging = positionService.getBaseMapper().selectPage(pager, wrapper);
+        return PageUtil.build(paging);
+    }
+
+    /**
      * 根据职位名称模糊查询职位列表
      * @param count
      * @param page

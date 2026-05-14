@@ -12,6 +12,8 @@ export interface UserInfo {
     info: string
   }>
   createTime?: string
+  companyName?: string
+  position?: string
 }
 
 export interface LoginForm {
